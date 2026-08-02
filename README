@@ -1,0 +1,86 @@
+# BarberPro - Sistema de Agendamento para Barbearia
+
+O **BarberPro** é um projeto Full Stack fictício desenvolvido para simular um sistema de agendamento para uma barbearia.
+
+A aplicação permite que clientes realizem agendamentos online e que administradores gerenciem serviços, barbeiros, clientes e horários. O projeto foi desenvolvido com o objetivo de aplicar conhecimentos de desenvolvimento web, autenticação de usuários, operações CRUD e integração entre Front-end, Back-end e banco de dados.
+
+---
+
+## Funcionalidades
+
+### Cliente
+
+* Cadastro de usuário
+* Login e autenticação
+* Gerenciamento de perfil
+* Alteração de dados pessoais
+* Agendamento de serviços
+* Escolha de barbeiro, data e horário
+* Visualização de agendamentos
+* Histórico de atendimentos
+
+### Administrador
+
+* Dashboard administrativo
+* Gerenciamento de agendamentos
+* Cadastro e edição de serviços
+* Gerenciamento de barbeiros
+* Gerenciamento de clientes
+* Controle de horários disponíveis
+
+---
+
+## Páginas do Sistema
+
+* Home
+* Sobre a barbearia
+* Serviços
+* Barbeiros
+* Contato
+* Avaliações
+* Agendamento
+* Login
+* Cadastro
+* Perfil do cliente
+* Painel administrativo
+
+---
+
+## Tecnologias Utilizadas
+
+### Front-end
+
+* HTML5
+* CSS3
+* JavaScript
+
+### Back-end
+
+* PHP
+
+### Banco de Dados
+
+* MySQL
+
+### Ambiente de Desenvolvimento
+
+* XAMPP
+* Apache
+* phpMyAdmin
+
+---
+
+## Estrutura do Banco de Dados
+
+O sistema utiliza um banco de dados relacional para armazenar:
+
+* Usuários
+* Barbeiros
+* Serviços
+* Agendamentos
+
+---
+
+## Objetivo do Projeto
+
+Desenvolver uma aplicação Full Stack fictícia para praticar desenvolvimento web, integração entre Front-end e Back-end, autenticação de usuários, manipulação de banco de dados e gerenciamento de informações em um sistema de agendamento.
