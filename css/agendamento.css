@@ -1,0 +1,281 @@
+/* ==========================================================================
+   PÁGINA DE AGENDAMENTO
+   ========================================================================== */
+
+/* CAIXAS DE ALERTAS (ESTILO PALETA GOLD/DARK) */
+.alert-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.alert-box.success {
+  color: var(--primary-color);
+}
+
+.alert-box.error {
+  color: var(--text-dark);
+}
+
+.agendamento-container {
+  max-width: 68rem;
+  margin: 2rem auto 5rem auto;
+  padding: 0 1.5rem;
+}
+
+.page-title {
+  text-align: center;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 700;
+  margin-bottom: 3.5rem;
+  color: #000;
+}
+
+.agendamento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3.5rem;
+}
+
+/* FORMULÁRIO (ESQUERDA) */
+.form-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  font-size: 0.9rem;
+  outline: none;
+  font-family: inherit;
+  color: var(--text-dark);
+}
+
+.form-control::placeholder {
+  color: #bbb;
+}
+
+select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23333' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.2rem;
+  cursor: pointer;
+}
+
+textarea.form-control {
+  border-radius: 0.75rem;
+  resize: vertical;
+  min-height: 6rem;
+}
+
+/* SELEÇÃO DE BARBEIROS */
+.barbers-selection {
+  display: flex;
+  gap: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.barber-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.barber-option input[type="radio"] {
+  display: none;
+}
+
+.barber-avatar {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  margin-bottom: 0.5rem;
+}
+
+.barber-option span {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.barber-option input[type="radio"]:checked + .barber-avatar {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+/* CALENDÁRIO & HORÁRIOS (DIREITA) */
+.schedule-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.calendar-wrapper {
+  width: 100%;
+  max-width: 24rem;
+  margin: 0 auto;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.calendar-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #333;
+}
+
+.calendar-days-header,
+.calendar-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.calendar-days-header {
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 0.5rem;
+}
+
+.calendar-days-grid span {
+  padding: 0.4rem 0;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 2.2rem;
+  height: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.1rem auto;
+  color: #333;
+}
+
+.calendar-days-grid span.selected {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.calendar-days-grid span.past {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+/* HORÁRIOS */
+.time-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.time-selection h4 {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  gap: 0.75rem;
+}
+
+.time-pill {
+  padding: 0.5rem 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.time-pill.selected,
+.time-pill:hover {
+  background-color: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
+}
+
+/* HORÁRIOS JÁ OCUPADOS (DESABILITADOS E CINZA) */
+.time-pill.disabled,
+.time-pill:disabled {
+  background-color: #e5e7eb !important;
+  color: #9ca3af !important;
+  border-color: #d1d5db !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  text-decoration: line-through;
+  pointer-events: none;
+}
+
+.btn-confirm {
+  width: 100%;
+  padding: 0.85rem;
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: opacity 0.3s;
+}
+
+.btn-confirm:hover {
+  opacity: 0.9;
+}
+
+/* MEDIA QUERIES (DESKTOPS E TABLETS MAIORES) */
+@media (min-width: 52em) {
+  .agendamento-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+}
