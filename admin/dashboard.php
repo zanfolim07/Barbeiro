@@ -238,7 +238,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
             <div class="card">
                 <h2>Fidelidade</h2>
                 <?php foreach($fidelidade as $f): ?>
-                <div style="margin-bottom:15px;">
+                <div style="margin-bottom:30px;">
                     <p style="margin: 0 0 5px 0;"><strong><?=$f['nome']?></strong> (<?=$f['total_cortes']?>/12)</p>
                     <div class="progress-bar"><div class="progress-fill" style="width: <?=min(($f['total_cortes']/12)*100, 100)?>%;"></div></div>
                 </div>

@@ -114,6 +114,11 @@ textarea.form-control {
   margin-bottom: 0.5rem;
 }
 
+.barber-avatar:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 .barber-option span {
   font-size: 0.85rem;
   font-weight: 500;

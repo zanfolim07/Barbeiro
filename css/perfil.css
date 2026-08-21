@@ -17,6 +17,9 @@
   display: flex;
   justify-content: center;
   text-align: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 .view-switch-wrapper {
