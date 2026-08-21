@@ -202,21 +202,24 @@ $preciosServicos = [
 
           <div class="form-group">
             <label for="prof-nome">Nome</label>
-            <input type="text" id="prof-nome" name="nome" class="form-control" value="<?= htmlspecialchars($nomeVal) ?>" required>
+            <input type="text" id="prof-nome" name="nome" class="form-control" value="<?= htmlspecialchars($nomeVal) ?>" readonly required>
           </div>
 
           <div class="form-group">
             <label for="prof-email">Email</label>
-            <input type="email" id="prof-email" name="email" class="form-control" value="<?= htmlspecialchars($emailVal) ?>" required>
+            <input type="email" id="prof-email" name="email" class="form-control" value="<?= htmlspecialchars($emailVal) ?>" readonly required>
           </div>
 
           <div class="form-group">
             <label for="prof-telefone">Telefone</label>
-            <input type="tel" id="prof-telefone" name="telefone" class="form-control" value="<?= htmlspecialchars($telefoneVal) ?>">
+            <input type="tel" id="prof-telefone" name="telefone" class="form-control" value="<?= htmlspecialchars($telefoneVal) ?>" readonly>
           </div>
 
           <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-            <button type="submit" class="btn-auth" style="flex: 1;">Salvar Alterações</button>
+            <button type="button" class="btn-auth" id="btn-editar-perfil" style="flex: 1;">
+              <i class="fa-solid fa-pencil" aria-hidden="true"></i>
+              <span>Editar</span>
+            </button>
             <button type="button" class="btn-auth" id="btn-open-alterar-senha" style="flex: 1; background: transparent; border: 1px solid var(--border-color); color: #333;">Alterar senha</button>
           </div>
         </form>

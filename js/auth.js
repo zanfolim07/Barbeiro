@@ -28,6 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const cardSenha = document.getElementById('card-alterar-senha');
   const btnOpenSenha = document.getElementById('btn-open-alterar-senha');
   const btnCancelSenha = document.getElementById('btn-cancel-alterar-senha');
+  const btnEditarPerfil = document.getElementById('btn-editar-perfil');
+  const formPerfil = document.getElementById('form-perfil');
 
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('tab') === 'agendamentos' && tabAgendamentos && sectionAgendamentos) {
@@ -64,6 +66,20 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCancelSenha.addEventListener('click', () => {
       cardSenha.classList.add('hidden');
       cardDados.classList.remove('hidden');
+    });
+  }
+
+  if (btnEditarPerfil && formPerfil) {
+    btnEditarPerfil.addEventListener('click', (event) => {
+      event.preventDefault();
+
+      formPerfil.querySelectorAll('.form-control').forEach((campo) => {
+        campo.removeAttribute('readonly');
+      });
+
+      btnEditarPerfil.type = 'submit';
+      btnEditarPerfil.querySelector('i')?.remove();
+      btnEditarPerfil.querySelector('span').textContent = 'Salvar Alterações';
     });
   }
 });

@@ -77,6 +77,19 @@
   gap: 1.25rem;
 }
 
+.profile-form .form-control[readonly] {
+  background-color: #ededed;
+  color: #666;
+  cursor: default;
+}
+
+#btn-editar-perfil {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
 .appointments-wrapper {
   width: 100%;
   overflow-x: auto;
