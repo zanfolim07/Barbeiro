@@ -1,6 +1,6 @@
-# BarberPro - Sistema de Agendamento para Barbearia
+# Barbearia - Sistema de Agendamento para Barbearia
 
-O **BarberPro** é um projeto Full Stack fictício desenvolvido para simular um sistema de agendamento para uma barbearia.
+O **Barbearia** é um projeto Full Stack fictício desenvolvido para simular um sistema de agendamento para uma barbearia.
 
 A aplicação permite que clientes realizem agendamentos online e que administradores gerenciem serviços, barbeiros, clientes e horários. O projeto foi desenvolvido com o objetivo de aplicar conhecimentos de desenvolvimento web, autenticação de usuários, operações CRUD e integração entre Front-end, Back-end e banco de dados.
 

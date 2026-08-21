@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BarberPro | Cadastrar Administrador</title>
+  <title>Barbearia | Cadastrar Administrador</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../css/geral.css">
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="auth-card">
       <div class="auth-header">
-        <h1><i class="fa-solid fa-scissors"></i> BarberPro</h1>
+        <h1><i class="fa-solid fa-scissors"></i> Barbearia</h1>
         <p>Cadastrar novo administrador</p>
       </div>
 
@@ -149,13 +149,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </div>
         </div>
 
-        <button type="submit" class="btn-auth">Cadastrar e Entrar</button>
+        <button type="submit" class="btn-auth">Cadastrar</button>
       </form>
-
-      <div class="auth-footer">
-        Já possui uma conta?
-        <button type="button" onclick="window.location.href='login-admin.php'">Fazer login</button>
-      </div>
     </div>
 
   </div>

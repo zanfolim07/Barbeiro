@@ -53,7 +53,7 @@ if (isset($_GET['action'])) {
             $horario = $agendamento['horario'] ?? 'horário agendado';
             
             if ($tipoAviso === 'confirmar') {
-                $mensagem = "Olá, {$agendamento['nome']}! Passando para confirmar seu horário às {$horario} na BarberPro. Tudo certo?";
+                $mensagem = "Olá, {$agendamento['nome']}! Passando para confirmar seu horário às {$horario} na Barbearia. Tudo certo?";
             } else {
                 $mensagem = "Olá, {$agendamento['nome']}! Informamos que tivemos um pequeno atraso na barbearia e entraremos em atendimento em instantes. Agradecemos a compreensão!";
             }
@@ -71,7 +71,7 @@ if (isset($_GET['action'])) {
         
         if (!empty($telefoneRaw)) {
             $telefone = preg_replace('/[^0-9]/', '', $telefoneRaw);
-            $mensagem = "Olá, {$nomeCliente}! Notamos que já faz um tempinho desde seu último corte aqui na BarberPro. Que tal remarcar seu próximo atendimento?";
+            $mensagem = "Olá, {$nomeCliente}! Notamos que já faz um tempinho desde seu último corte aqui na Barbearia. Que tal remarcar seu próximo atendimento?";
             
             $urlWhatsapp = "https://api.whatsapp.com/send?phone=55{$telefone}&text=" . urlencode($mensagem);
             header("Location: " . $urlWhatsapp);
@@ -130,7 +130,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>BarberPro | Dashboard</title>
+    <title>Barbearia | Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../css/geral.css">
@@ -140,7 +140,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
 
   <aside class="sidebar">
     <div>
-        <div class="brand"><i class="fa-solid fa-scissors"></i> BarberPro</div>
+        <div class="brand"><i class="fa-solid fa-scissors"></i> Barbearia</div>
         <ul class="nav-menu">
             <li class="<?= $pagina === 'inicio' ? 'active' : '' ?>">
                 <a href="?pagina=inicio"><i class="fa-solid fa-house"></i> Inicio</a>
@@ -188,7 +188,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
         </section>
 
         <div class="card">
-            <h2><i class="fa-solid fa-users-gear"></i> Clientes cadastrados</h2>
+            <h2>Clientes cadastrados</h2>
             <table>
                 <thead><tr><th>ID</th><th>Nome</th><th>Telefone</th><th>Email</th><th>Data</th><th>Ação</th></tr></thead>
                 <tbody>
@@ -208,7 +208,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
 
         <div class="dashboard-bottom-grid">
             <div class="card">
-                <h2><i class="fa-solid fa-envelope"></i> Lista newsletter</h2>
+                <h2>Lista newsletter</h2>
                 <table>
                     <thead><tr><th>ID</th><th>Email</th><th>Data</th><th>Ação</th></tr></thead>
                     <tbody>
@@ -224,7 +224,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
                 </table>
             </div>
             <div class="card">
-                <h2><i class="fa-solid fa-star"></i> Fidelidade</h2>
+                <h2>Fidelidade</h2>
                 <?php foreach($fidelidade as $f): ?>
                 <div style="margin-bottom:15px;">
                     <p style="margin: 0 0 5px 0;"><strong><?=$f['nome']?></strong> (<?=$f['total_cortes']?>/12)</p>
