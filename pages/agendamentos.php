@@ -1,10 +1,21 @@
 <?php
 session_start();
+require_once __DIR__ . '/../php/conexao.php';
 require_once __DIR__ . '/../php/funcoes.php';
 
 if (!isset($_SESSION['usuario_id']) || empty($_SESSION['usuario_id'])) {
     header("Location: login.php");
     exit;
+}
+
+$stmtUsuario = $pdo->prepare('SELECT id FROM usuarios WHERE id = ? LIMIT 1');
+$stmtUsuario->execute([$_SESSION['usuario_id']]);
+
+if (!$stmtUsuario->fetchColumn()) {
+  $_SESSION = [];
+  session_destroy();
+  header('Location: login.php?status=erro&msg=Sua conta não está mais disponível. Cadastre-se novamente.');
+  exit;
 }
 
 $sucesso = null;
@@ -14,8 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (!csrfValido($_POST['csrf_token'] ?? null)) {
     $erro = 'Sessão expirada. Atualize a página e tente novamente.';
   } else {
-    require_once '../php/conexao.php';
-
     $usuario_id = $_SESSION['usuario_id'];
     $nome = postTexto('nome');
     $telefone_bruto = postTexto('telefone');
