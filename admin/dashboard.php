@@ -1,24 +1,23 @@
 <?php
-// Ativa a exibição de erros temporariamente para evitar tela branca caso ocorra algo
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 session_start();
 
-// Verifica se o administrador está logado, caso contrário redireciona para o login
 if (!isset($_SESSION['admin_logado'])) {
     header('Location: login-admin.php');
     exit;
 }
 
 require_once __DIR__ . '/../php/conexao.php';
+require_once __DIR__ . '/../php/funcoes.php';
 
 $pagina = $_GET['pagina'] ?? 'inicio';
+$csrfToken = tokenCsrf();
 
-// Ações do sistema (Exclusão, Mudança de Status do Corte e Disparo de Mensagens via WhatsApp)
 if (isset($_GET['action'])) {
     $action = $_GET['action'];
+    if (!csrfValido($_GET['csrf_token'] ?? null)) {
+        header('Location: ?pagina=' . urlencode($pagina) . '&msg=Ação inválida.');
+        exit;
+    }
     $id = intval($_GET['id'] ?? 0);
     
     if ($action === 'deletar_usuario' && $id > 0) {
@@ -67,7 +66,6 @@ if (isset($_GET['action'])) {
             exit;
         }
     } elseif ($action === 'remarcar_cliente') {
-        // Ação para clientes frequentes via GET (usando telefone e nome passados na URL)
         $telefoneRaw = $_GET['tel'] ?? '';
         $nomeCliente = $_GET['nome'] ?? 'Cliente';
         
@@ -85,7 +83,6 @@ if (isset($_GET['action'])) {
     }
 }
 
-// Dados globais para a página "Inicio"
 $totalAgendamentos = $pdo->query("SELECT COUNT(*) FROM agendamentos")->fetchColumn();
 $concluidos        = $pdo->query("SELECT COUNT(*) FROM agendamentos WHERE status = 'concluido'")->fetchColumn();
 $totalUsuarios     = $pdo->query("SELECT COUNT(*) FROM usuarios")->fetchColumn();
@@ -95,7 +92,6 @@ $newsletter = $pdo->query("SELECT * FROM newsletter ORDER BY data_inscricao DESC
 $fidelidade = $pdo->query("SELECT nome, COUNT(*) as total_cortes FROM agendamentos WHERE status = 'concluido' GROUP BY nome ORDER BY total_cortes DESC LIMIT 3")->fetchAll();
 $admins     = $pdo->query("SELECT * FROM administradores ORDER BY id DESC")->fetchAll();
 
-// Mapeamento dos barbeiros
 $barbeirosMap = [
     'joao_silva' => [
         'nome' => 'João Silva',
@@ -171,7 +167,6 @@ if (array_key_exists($pagina, $barbeirosMap)) {
 
   <main class="main">
     <?php if ($pagina === 'inicio'): ?>
-        <!-- PÁGINA INICIAL GERAL -->
         <div class="header">
             <h1>Inicio</h1> 
             <strong>Painel Administrativo Geral</strong>
@@ -204,7 +199,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
                         <td><?=$u['telefone']?></td>
                         <td><?=$u['email']?></td>
                         <td><?=$u['data_cadastro'] ?? '-'?></td>
-                        <td><a href="?pagina=inicio&action=deletar_usuario&id=<?=$u['id']?>" class="action-link"><i class="fa-solid fa-trash"></i></a></td>
+                        <td><a href="?pagina=inicio&action=deletar_usuario&id=<?=$u['id']?>&csrf_token=<?=$csrfToken?>" class="action-link"><i class="fa-solid fa-trash"></i></a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -222,7 +217,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
                             <td><?=$n['id']?></td>
                             <td><?=$n['email']?></td>
                             <td><?=$n['data_inscricao'] ?? '-'?></td>
-                            <td><a href="?pagina=inicio&action=deletar_newsletter&id=<?=$n['id']?>" class="action-link"><i class="fa-solid fa-trash"></i></a></td>
+                            <td><a href="?pagina=inicio&action=deletar_newsletter&id=<?=$n['id']?>&csrf_token=<?=$csrfToken?>" class="action-link"><i class="fa-solid fa-trash"></i></a></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -240,7 +235,6 @@ if (array_key_exists($pagina, $barbeirosMap)) {
         </div>
 
     <?php elseif ($pagina === 'profissionais'): ?>
-        <!-- PÁGINA DE CADASTRO DE PROFISSIONAIS / ADMINS -->
         <div class="header">
             <h1>Profissionais / Administradores</h1>
             <a href="cadastro-admin.php" class="btn-action" style="padding: 10px 20px; text-decoration: none; display: inline-block;"><i class="fa-solid fa-user-plus"></i> Cadastrar Novo</a>
@@ -267,7 +261,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
                         <td><?=$adm['data_cadastro'] ?? '-'?></td>
                         <td>
                             <?php if ($adm['id'] != $_SESSION['admin_id']): ?>
-                                <a href="?pagina=profissionais&action=deletar_admin&id=<?=$adm['id']?>" class="action-link" onclick="return confirm('Deseja realmente apagar este administrador?');"><i class="fa-solid fa-trash"></i></a>
+                                <a href="?pagina=profissionais&action=deletar_admin&id=<?=$adm['id']?>&csrf_token=<?=$csrfToken?>" class="action-link" onclick="return confirm('Deseja realmente apagar este administrador?');"><i class="fa-solid fa-trash"></i></a>
                             <?php else: ?>
                                 <span style="color: #999; font-size: 0.85rem;" title="Você está logado nesta conta">(Atual)</span>
                             <?php endif; ?>
@@ -279,7 +273,6 @@ if (array_key_exists($pagina, $barbeirosMap)) {
         </div>
 
     <?php elseif (array_key_exists($pagina, $barbeirosMap)): ?>
-        <!-- PÁGINA INDIVIDUAL DO BARBEIRO SELECIONADO -->
         <?php 
         $b = $barbeirosMap[$pagina]; 
         
@@ -341,21 +334,21 @@ if (array_key_exists($pagina, $barbeirosMap)) {
                             <td><?=$ag['servico'] ?? 'Corte'?></td>
                             <td>
                                 <?php if (($ag['status'] ?? '') === 'em_andamento'): ?>
-                                    <a href="?pagina=<?=$pagina?>&action=encerrar_corte&id=<?=$ag['id']?>" class="btn-action encerrar">Encerrar</a>
+                                    <a href="?pagina=<?=$pagina?>&action=encerrar_corte&id=<?=$ag['id']?>&csrf_token=<?=$csrfToken?>" class="btn-action encerrar">Encerrar</a>
                                 <?php else: ?>
-                                    <a href="?pagina=<?=$pagina?>&action=iniciar_corte&id=<?=$ag['id']?>" class="btn-action">Iniciar</a>
+                                    <a href="?pagina=<?=$pagina?>&action=iniciar_corte&id=<?=$ag['id']?>&csrf_token=<?=$csrfToken?>" class="btn-action">Iniciar</a>
                                 <?php endif; ?>
                             </td>
                             <td>
                                 <div class="dropdown-container">
                                     <button type="button" class="btn-enviar toggle-dropdown">Enviar</button>
                                     <div class="dropdown-menu">
-                                        <a href="?pagina=<?=$pagina?>&action=enviar_aviso&tipo=confirmar&id=<?=$ag['id']?>" target="_blank">Confirmar horário</a>
-                                        <a href="?pagina=<?=$pagina?>&action=enviar_aviso&tipo=atraso&id=<?=$ag['id']?>" target="_blank">Avisar atraso</a>
+                                        <a href="?pagina=<?=$pagina?>&action=enviar_aviso&tipo=confirmar&id=<?=$ag['id']?>&csrf_token=<?=$csrfToken?>" target="_blank">Confirmar horário</a>
+                                        <a href="?pagina=<?=$pagina?>&action=enviar_aviso&tipo=atraso&id=<?=$ag['id']?>&csrf_token=<?=$csrfToken?>" target="_blank">Avisar atraso</a>
                                     </div>
                                 </div>
                             </td>
-                            <td><a href="?pagina=<?=$pagina?>&action=deletar_agendamento&id=<?=$ag['id']?>" class="action-link"><i class="fa-solid fa-trash"></i></a></td>
+                            <td><a href="?pagina=<?=$pagina?>&action=deletar_agendamento&id=<?=$ag['id']?>&csrf_token=<?=$csrfToken?>" class="action-link"><i class="fa-solid fa-trash"></i></a></td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -389,7 +382,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
                                 <div class="dropdown-container">
                                     <button type="button" class="btn-enviar toggle-dropdown">Enviar</button>
                                     <div class="dropdown-menu">
-                                        <a href="?pagina=<?=$pagina?>&action=remarcar_cliente&tel=<?=urlencode($cf['telefone'])?>&nome=<?=urlencode($cf['nome'])?>" target="_blank">Remarcar</a>
+                                        <a href="?pagina=<?=$pagina?>&action=remarcar_cliente&tel=<?=urlencode($cf['telefone'])?>&nome=<?=urlencode($cf['nome'])?>&csrf_token=<?=$csrfToken?>" target="_blank">Remarcar</a>
                                     </div>
                                 </div>
                             </td>
@@ -412,7 +405,6 @@ if (array_key_exists($pagina, $barbeirosMap)) {
             const container = toggle.closest('.dropdown-container');
             const menu = container.querySelector('.dropdown-menu');
             
-            // Fecha todos os outros dropdowns abertos
             document.querySelectorAll('.dropdown-container').forEach(d => {
                 if (d !== container) {
                     d.classList.remove('active');
@@ -429,7 +421,6 @@ if (array_key_exists($pagina, $barbeirosMap)) {
                 menu.style.position = 'fixed';
                 menu.style.zIndex = '999999';
                 menu.style.left = rect.left + 'px';
-                // Posiciona logo abaixo do botão de forma fixa
                 menu.style.top = (rect.bottom + 6) + 'px';
                 menu.style.bottom = 'auto';
             } else {
@@ -437,7 +428,6 @@ if (array_key_exists($pagina, $barbeirosMap)) {
             }
             e.stopPropagation();
         } else {
-            // Fecha ao clicar fora
             document.querySelectorAll('.dropdown-container').forEach(d => {
                 d.classList.remove('active');
                 const m = d.querySelector('.dropdown-menu');

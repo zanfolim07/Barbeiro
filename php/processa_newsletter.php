@@ -1,5 +1,7 @@
 <?php
+session_start();
 require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/funcoes.php';
 
 header('Content-Type: application/json');
 
@@ -9,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+$email = postEmail('email');
 
 if (!$email) {
     echo json_encode(['status' => 'erro', 'msg' => 'E-mail inválido!']);
@@ -31,4 +33,10 @@ try {
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['status' => 'erro', 'msg' => 'Erro interno no servidor.']);
+}
+
+if (!csrfValido($_POST['csrf_token'] ?? null)) {
+    http_response_code(403);
+    echo json_encode(['status' => 'erro', 'msg' => 'Sessão expirada. Atualize a página e tente novamente.']);
+    exit;
 }

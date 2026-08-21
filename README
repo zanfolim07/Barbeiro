@@ -84,3 +84,15 @@ O sistema utiliza um banco de dados relacional para armazenar:
 ## Objetivo do Projeto
 
 Desenvolver uma aplicação Full Stack fictícia para praticar desenvolvimento web, integração entre Front-end e Back-end, autenticação de usuários, manipulação de banco de dados e gerenciamento de informações em um sistema de agendamento.
+
+---
+
+## Configuração após a transferência
+
+Antes de executar o sistema em outro computador, revise os valores de conexão em `php/conexao.php`:
+
+* host, banco, usuário e senha do MySQL;
+* disponibilidade do banco `barbearia` e das tabelas utilizadas pela aplicação;
+* extensão PDO MySQL habilitada no PHP.
+
+O projeto ainda não possui uma suíte automatizada de testes. Depois de configurar o ambiente, valide manualmente cadastro, login, agendamento, cancelamento, newsletter e acesso administrativo. A validação sintática pode ser executada com `php -l` em todos os arquivos PHP.

@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../php/conexao.php';
+require_once __DIR__ . '/../php/funcoes.php';
 
 if (!isset($_SESSION['usuario_id']) && !isset($_SESSION['usuario_email'])) {
     header('Location: login.php');
@@ -15,12 +16,15 @@ $sucesso = null;
 $erro    = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $acao = $_POST['acao'] ?? '';
+  if (!csrfValido($_POST['csrf_token'] ?? null)) {
+    $erro = 'Sessão expirada. Atualize a página e tente novamente.';
+  } else {
+  $acao = $_POST['acao'] ?? '';
 
     if ($acao === 'atualizar_perfil') {
-        $nome     = trim($_POST['nome'] ?? '');
-        $email    = trim($_POST['email'] ?? '');
-        $telefone = trim($_POST['telefone'] ?? '');
+        $nome     = postTexto('nome');
+        $email    = postEmail('email');
+        $telefone = postTexto('telefone');
 
         if (!empty($nome) && !empty($email)) {
             try {
@@ -38,7 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $sucesso = "Dados atualizados com sucesso!";
             } catch (PDOException $e) {
-                $erro = "Erro ao atualizar dados: " . $e->getMessage();
+              error_log($e->getMessage());
+              $erro = "Erro ao atualizar dados. Tente novamente.";
             }
         } else {
             $erro = "Nome e E-mail são obrigatórios.";
@@ -83,9 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header("Location: perfil.php?tab=agendamentos");
                 exit;
             } catch (PDOException $e) {
-                $erro = "Erro ao cancelar agendamento: " . $e->getMessage();
+              error_log($e->getMessage());
+              $erro = "Erro ao cancelar agendamento. Tente novamente.";
             }
         }
+    }
     }
 }
 
@@ -133,7 +140,7 @@ $preciosServicos = [
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <link rel="stylesheet" href="../css/geral.css">
-  <link rel="stylesheet" href="../css/login.css">
+  <link rel="stylesheet" href="../css/auth.css">
   <link rel="stylesheet" href="../css/perfil.css">
 </head>
 <body>
@@ -190,6 +197,7 @@ $preciosServicos = [
       
     <div class="profile-card" id="card-dados-usuario">
         <form class="profile-form" id="form-perfil" method="POST" action="perfil.php">
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf()) ?>">
           <input type="hidden" name="acao" value="atualizar_perfil">
 
           <div class="form-group">
@@ -218,6 +226,7 @@ $preciosServicos = [
         <h2 class="card-title-center">Alterar senha</h2>
         
         <form class="profile-form" id="form-alterar-senha" method="POST" action="perfil.php">
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf()) ?>">
           <input type="hidden" name="acao" value="alterar_senha">
 
           <div class="form-group">
@@ -288,6 +297,7 @@ $preciosServicos = [
                   <td><?= $valor ?></td>
                   <td>
                     <form method="POST" action="perfil.php" onsubmit="return confirm('Tem certeza que deseja cancelar este agendamento?');">
+                      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf()) ?>">
                       <input type="hidden" name="acao" value="cancelar_agendamento">
                       <input type="hidden" name="agendamento_id" value="<?= $ag['id'] ?>">
                       <button type="submit" class="btn-cancel">Cancelar</button>

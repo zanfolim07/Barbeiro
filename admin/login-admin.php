@@ -1,25 +1,27 @@
 <?php
 session_start();
 require_once __DIR__ . '/../php/conexao.php';
+require_once __DIR__ . '/../php/funcoes.php';
 
 $erro = '';
 $sucesso = $_GET['msg'] ?? '';
 
-// Lógica de Logout
 if (isset($_GET['action']) && $_GET['action'] === 'sair') {
     session_destroy();
     header('Location: login-admin.php?msg=Você+saiu+do+sistema!');
     exit;
 }
 
-// Se já estiver logado, manda direto pro dashboard
 if (isset($_SESSION['admin_logado'])) {
     header('Location: dashboard.php');
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $usuario = trim($_POST['usuario'] ?? '');
+  if (!csrfValido($_POST['csrf_token'] ?? null)) {
+    $erro = 'Sessão expirada. Atualize a página e tente novamente.';
+  } else {
+    $usuario = postTexto('usuario');
     $senha   = $_POST['senha'] ?? '';
 
     if ($usuario === '' || $senha === '') {
@@ -30,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $admin = $stmt->fetch();
 
         if ($admin && password_verify($senha, $admin['senha'])) {
+            session_regenerate_id(true);
             $_SESSION['admin_logado'] = true;
             $_SESSION['admin_id']     = $admin['id'];
             $_SESSION['admin_nome']   = $admin['nome'] ?? $admin['usuario'];
@@ -44,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $erro = 'Usuário ou senha inválidos.';
         }
     }
+      }
 }
 ?>
 <!DOCTYPE html>
@@ -55,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../css/geral.css">
-  <link rel="stylesheet" href="../css/login-admin.css">
+  <link rel="stylesheet" href="../css/auth.css">
   <style>
     :root {
       --primary-color: #7b212d;
@@ -86,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
 
       <form class="auth-form" method="POST" action="login-admin.php">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf()) ?>">
         <div class="form-group">
           <label for="usuario">Usuário</label>
           <div class="input-wrapper">

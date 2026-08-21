@@ -1,17 +1,16 @@
 <?php
-// Ativa a exibição de erros para identificar o problema na hora
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 session_start();
 require_once __DIR__ . '/../php/conexao.php';
+require_once __DIR__ . '/../php/funcoes.php';
 
 $erro = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nome           = trim($_POST['nome'] ?? '');
-    $usuario        = trim($_POST['usuario'] ?? '');
+  if (!csrfValido($_POST['csrf_token'] ?? null)) {
+    $erro = 'Sessão expirada. Atualize a página e tente novamente.';
+  } else {
+    $nome           = postTexto('nome');
+    $usuario        = postTexto('usuario');
     $senha          = $_POST['senha'] ?? '';
     $confirmarSenha = $_POST['confirmar_senha'] ?? '';
 
@@ -20,28 +19,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($senha !== $confirmarSenha) {
         $erro = 'As senhas não coincidem.';
     } else {
-        // Verifica se o usuário já existe no banco
         $stmtCheck = $pdo->prepare("SELECT id FROM administradores WHERE usuario = ? LIMIT 1");
         $stmtCheck->execute([$usuario]);
         
         if ($stmtCheck->fetch()) {
             $erro = 'Este nome de usuário já está em uso.';
         } else {
-            // Criptografa a senha com segurança
             $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
             
             $stmtInsert = $pdo->prepare("INSERT INTO administradores (nome, usuario, senha) VALUES (?, ?, ?)");
             
             if ($stmtInsert->execute([$nome, $usuario, $senhaHash])) {
-                // Pega o ID do administrador recém-cadastrado
                 $novoId = $pdo->lastInsertId();
 
-                // Cria a sessão automaticamente para logar o usuário
+                session_regenerate_id(true);
                 $_SESSION['admin_logado'] = true;
                 $_SESSION['admin_id']     = $novoId;
                 $_SESSION['admin_nome']   = $nome;
 
-                // Redireciona direto para a dashboard
                 header('Location: dashboard.php');
                 exit;
             } else {
@@ -49,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+      }
 }
 ?>
 <!DOCTYPE html>
@@ -60,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../css/geral.css">
-  <link rel="stylesheet" href="../css/login-admin.css">
+  <link rel="stylesheet" href="../css/auth.css">
   <style>
     :root {
       --primary-color: #7b212d;
@@ -87,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
 
       <form class="auth-form" method="POST" action="cadastro-admin.php">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf()) ?>">
         <div class="form-group">
           <label for="nome">Nome completo</label>
           <div class="input-wrapper">

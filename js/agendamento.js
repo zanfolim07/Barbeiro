@@ -145,7 +145,12 @@ document.addEventListener('DOMContentLoaded', () => {
           inputHorario.value = '';
         }
       })
-      .catch(err => console.error('Erro ao verificar horários:', err));
+      .catch(() => {
+        timePills.forEach(pill => {
+          pill.disabled = true;
+          pill.classList.add('disabled');
+        });
+      });
   }
 
   const barbeiroRadios = document.querySelectorAll('input[name="barbeiro"]');

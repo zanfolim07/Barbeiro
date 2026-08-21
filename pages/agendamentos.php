@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../php/funcoes.php';
 
 if (!isset($_SESSION['usuario_id']) || empty($_SESSION['usuario_id'])) {
     header("Location: login.php");
@@ -10,36 +11,48 @@ $sucesso = null;
 $erro = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  if (!csrfValido($_POST['csrf_token'] ?? null)) {
+    $erro = 'Sessão expirada. Atualize a página e tente novamente.';
+  } else {
     require_once '../php/conexao.php';
 
     $usuario_id = $_SESSION['usuario_id'];
-    $nome = trim($_POST['nome'] ?? '');
-    $telefone_bruto = trim($_POST['telefone'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $servico = trim($_POST['servico'] ?? '');
-    $barbeiro = trim($_POST['barbeiro'] ?? '');
-    $observacao = trim($_POST['observacao'] ?? '');
-    $data_agendamento = trim($_POST['data_agendamento'] ?? '');
-    $horario = trim($_POST['horario'] ?? '');
+    $nome = postTexto('nome');
+    $telefone_bruto = postTexto('telefone');
+    $email = postEmail('email');
+    $servico = postTexto('servico');
+    $barbeiro = postTexto('barbeiro');
+    $observacao = postTexto('observacao');
+    $data_agendamento = postTexto('data_agendamento');
+    $horario = postTexto('horario');
 
     $telefone = preg_replace('/\D/', '', $telefone_bruto);
     $tamanho_tel = strlen($telefone);
 
     if (empty($nome) || empty($telefone) || empty($email) || empty($servico) || empty($data_agendamento) || empty($horario)) {
         $erro = "Por favor, preencha todos os campos obrigatórios.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $email)) {
+    } elseif (!$email) {
         $erro = "Por favor, informe um endereço de e-mail completo e válido (ex: seuemail@gmail.com).";
     } elseif ($tamanho_tel < 10 || $tamanho_tel > 11) {
         $erro = "O número de telefone precisa ter a quantidade correta de dígitos (com DDD: 10 ou 11 números).";
     } else {
         try {
+        $stmtHorario = $pdo->prepare("SELECT 1 FROM agendamentos WHERE data_agendamento = ? AND horario = ? AND barbeiro = ? AND (status != 'cancelado' OR status IS NULL) LIMIT 1");
+        $stmtHorario->execute([$data_agendamento, $horario, $barbeiro]);
+
+        if ($stmtHorario->fetchColumn()) {
+          $erro = "Este horário não está mais disponível. Escolha outro horário.";
+        } else {
             $stmt = $pdo->prepare("INSERT INTO agendamentos (usuario_id, nome, telefone, email, servico, barbeiro, observacao, data_agendamento, horario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([$usuario_id, $nome, $telefone, $email, $servico, $barbeiro, $observacao, $data_agendamento, $horario]);
             
             $sucesso = "Agendamento realizado com sucesso!";
-        } catch (PDOException $e) {
-            $erro = "Erro ao salvar agendamento: " . $e->getMessage();
         }
+        } catch (PDOException $e) {
+          error_log($e->getMessage());
+          $erro = "Erro ao salvar agendamento. Tente novamente.";
+        }
+    }
     }
 }
 ?>
@@ -109,6 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form class="agendamento-grid" id="form-agendamento" method="POST" action="agendamentos.php">
+      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf()) ?>">
       
       <input type="hidden" name="data_agendamento" id="input-data" value="">
       <input type="hidden" name="horario" id="input-horario" value="">

@@ -1,3 +1,7 @@
+<?php
+session_start();
+require_once __DIR__ . '/../php/funcoes.php';
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -11,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <link rel="stylesheet" href="../css/geral.css">
-  <link rel="stylesheet" href="../css/login.css">
+  <link rel="stylesheet" href="../css/auth.css">
 </head>
 <body>
   <main class="auth-container">
@@ -25,6 +29,7 @@
       </div>
 
       <form id="form-login" class="auth-form" action="../php/processa_login.php" method="POST">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf()) ?>">
         <div class="form-group">
           <label for="login-email">Email</label>
           <input type="email" id="login-email" name="email" class="form-control" placeholder="Digite seu email" required>
@@ -55,6 +60,7 @@
       </div>
 
       <form id="form-cadastro" class="auth-form" action="../php/processa_cadastro.php" method="POST">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf()) ?>">
         <div class="form-group">
           <label for="cad-nome">Nome</label>
           <input type="text" id="cad-nome" name="nome" class="form-control" placeholder="Digite seu nome" required>

@@ -1,35 +1,39 @@
 <?php
 session_start();
-require_once 'conexao.php';
+require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/funcoes.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = filter_var(trim($_POST['email'] ?? ''), FILTER_VALIDATE_EMAIL);
-    $senha = $_POST['senha'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ../pages/login.php');
+    exit;
+}
 
-    if (!$email || !$senha) {
-        header("Location: ../pages/login.php?status=erro&msg=Preencha todos os campos.");
-        exit;
+$email = postEmail('email');
+$senha = $_POST['senha'] ?? '';
+
+if (!$email || $senha === '') {
+    redirecionarComStatus('../pages/login.php', 'Preencha todos os campos.');
+}
+
+try {
+    $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE email = :email");
+    $stmt->execute([':email' => $email]);
+    $usuario = $stmt->fetch();
+
+    if (!$usuario || !password_verify($senha, $usuario['senha'])) {
+        redirecionarComStatus('../pages/login.php', 'E-mail ou senha incorretos.');
     }
 
-    try {
-        $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE email = :email");
-        $stmt->execute([':email' => $email]);
-        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+    session_regenerate_id(true);
+    $_SESSION['usuario_id'] = $usuario['id'];
+    $_SESSION['usuario_nome'] = $usuario['nome'];
+    $_SESSION['usuario_email'] = $usuario['email'];
+    header('Location: ../index.php');
+    exit;
+} catch (PDOException $e) {
+    redirecionarComStatus('../pages/login.php', 'Erro de autenticação.');
+}
 
-        if ($usuario && password_verify($senha, $usuario['senha'])) {
-            $_SESSION['usuario_id'] = $usuario['id'];
-            $_SESSION['usuario_nome'] = $usuario['nome'];
-            $_SESSION['usuario_email'] = $usuario['email'];
-
-            header("Location: ../index.php");
-            exit;
-        } else {
-            header("Location: ../pages/login.php?status=erro&msg=E-mail ou senha incorretos.");
-            exit;
-        }
-
-    } catch (PDOException $e) {
-        header("Location: ../pages/login.php?status=erro&msg=Erro de autenticação.");
-        exit;
-    }
+if (!csrfValido($_POST['csrf_token'] ?? null)) {
+    redirecionarComStatus('../pages/login.php', 'Sessão expirada. Tente novamente.');
 }

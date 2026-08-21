@@ -1,9 +1,9 @@
 <?php
 
-$host    = 'localhost';
-$banco   = 'barbearia';
-$usuario = 'root';
-$senha   = ''; 
+$host    = getenv('DB_HOST') ?: 'localhost';
+$banco   = getenv('DB_NAME') ?: 'barbearia';
+$usuario = getenv('DB_USER') ?: 'root';
+$senha   = getenv('DB_PASSWORD') ?: '';
 
 try {
     
@@ -14,7 +14,7 @@ try {
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-   
-    die("Erro crítico de conexão com o banco de dados: " . $e->getMessage());
+    error_log($e->getMessage());
+    die('Erro crítico de conexão com o banco de dados.');
 }
 ?>

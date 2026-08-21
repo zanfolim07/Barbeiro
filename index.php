@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/php/funcoes.php';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -318,6 +319,7 @@ session_start();
         </div>
         
         <form id="form-newsletter" class="newsletter-block">
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf()) ?>">
           <label for="email">Receba nossas novidades:</label>
 
           <div class="input-group">
