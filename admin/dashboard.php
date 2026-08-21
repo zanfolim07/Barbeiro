@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('America/Sao_Paulo');
 
 if (!isset($_SESSION['admin_logado'])) {
     header('Location: login-admin.php');
@@ -83,6 +84,13 @@ if (isset($_GET['action'])) {
     }
 }
 
+$agoraBrt = new DateTimeImmutable('now', new DateTimeZone('America/Sao_Paulo'));
+$dataHoje = $agoraBrt->format('Y-m-d');
+$dataHoraAtual = $agoraBrt->format('Y-m-d H:i:s');
+
+$stmtAtualizaVencidos = $pdo->prepare("UPDATE agendamentos SET status = 'concluido' WHERE (status IS NULL OR status NOT IN ('concluido', 'cancelado')) AND STR_TO_DATE(CONCAT(data_agendamento, ' ', horario), '%Y-%m-%d %H:%i:%s') < ?");
+$stmtAtualizaVencidos->execute([$dataHoraAtual]);
+
 $totalAgendamentos = $pdo->query("SELECT COUNT(*) FROM agendamentos")->fetchColumn();
 $concluidos        = $pdo->query("SELECT COUNT(*) FROM agendamentos WHERE status = 'concluido'")->fetchColumn();
 $totalUsuarios     = $pdo->query("SELECT COUNT(*) FROM usuarios")->fetchColumn();
@@ -110,15 +118,19 @@ $barbeirosMap = [
 if (array_key_exists($pagina, $barbeirosMap)) {
     $barbeiroAtual = $barbeirosMap[$pagina];
     
-    $stmtAgenda = $pdo->prepare("SELECT * FROM agendamentos WHERE barbeiro = ? AND (status IS NULL OR status != 'concluido') ORDER BY horario ASC");
-    $stmtAgenda->execute([$barbeiroAtual['nome']]);
+    $stmtAgenda = $pdo->prepare("SELECT * FROM agendamentos WHERE barbeiro = ? AND data_agendamento = ? AND (status IS NULL OR status NOT IN ('concluido', 'cancelado')) AND STR_TO_DATE(CONCAT(data_agendamento, ' ', horario), '%Y-%m-%d %H:%i:%s') >= ? ORDER BY horario ASC");
+    $stmtAgenda->execute([$barbeiroAtual['nome'], $dataHoje, $dataHoraAtual]);
     $agendamentosBarbeiro = $stmtAgenda->fetchAll();
+
+    $stmtConcluidos = $pdo->prepare("SELECT * FROM agendamentos WHERE barbeiro = ? AND data_agendamento = ? AND status = 'concluido' ORDER BY horario DESC");
+    $stmtConcluidos->execute([$barbeiroAtual['nome'], $dataHoje]);
+    $agendamentosConcluidos = $stmtConcluidos->fetchAll();
 
     $minhaAgendaHoje = count($agendamentosBarbeiro);
     $proximoClienteNome = !empty($agendamentosBarbeiro) ? $agendamentosBarbeiro[0]['nome'] : 'Nenhum';
     
-    $stmtFin = $pdo->prepare("SELECT COUNT(*) FROM agendamentos WHERE barbeiro = ? AND status = 'concluido'");
-    $stmtFin->execute([$barbeiroAtual['nome']]);
+    $stmtFin = $pdo->prepare("SELECT COUNT(*) FROM agendamentos WHERE barbeiro = ? AND data_agendamento = ? AND status = 'concluido'");
+    $stmtFin->execute([$barbeiroAtual['nome'], $dataHoje]);
     $finalizadosHoje = $stmtFin->fetchColumn();
 
     $stmtFidelidadeBarbeiro = $pdo->prepare("SELECT nome, telefone, email, COUNT(*) as total_cortes FROM agendamentos WHERE barbeiro = ? AND status = 'concluido' GROUP BY nome, telefone, email ORDER BY total_cortes DESC LIMIT 5");
@@ -353,6 +365,34 @@ if (array_key_exists($pagina, $barbeirosMap)) {
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr><td colspan="7" style="text-align: center; color: #777;">Nenhum agendamento pendente para este profissional.</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2 style="font-size: 1.1rem; margin-top: 0;">Concluídos hoje</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Horario</th>
+                        <th>Nome</th>
+                        <th>Telefone</th>
+                        <th>Serviço</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($agendamentosConcluidos)): ?>
+                        <?php foreach($agendamentosConcluidos as $ag): ?>
+                        <tr>
+                            <td><?=$ag['horario'] ?? '--:--'?></td>
+                            <td><?=$ag['nome']?></td>
+                            <td><?=$ag['telefone'] ?? '-'?></td>
+                            <td><?=$ag['servico'] ?? 'Corte'?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr><td colspan="4" style="text-align: center; color: #777;">Nenhum atendimento concluído hoje.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

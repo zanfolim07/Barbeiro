@@ -1,5 +1,7 @@
 <?php
 
+date_default_timezone_set('America/Sao_Paulo');
+
 $host    = getenv('DB_HOST') ?: 'localhost';
 $banco   = getenv('DB_NAME') ?: 'barbearia';
 $usuario = getenv('DB_USER') ?: 'root';
