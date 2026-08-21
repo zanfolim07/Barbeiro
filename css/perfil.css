@@ -13,6 +13,12 @@
   margin-bottom: 2rem;
 }
 
+.profile-container .alert-box {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
 .view-switch-wrapper {
   display: flex;
   justify-content: center;
