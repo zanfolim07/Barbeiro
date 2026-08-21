@@ -86,10 +86,10 @@ if (isset($_GET['action'])) {
 
 $agoraBrt = new DateTimeImmutable('now', new DateTimeZone('America/Sao_Paulo'));
 $dataHoje = $agoraBrt->format('Y-m-d');
-$dataHoraAtual = $agoraBrt->format('Y-m-d H:i:s');
+$horaAtual = $agoraBrt->format('H:i:s');
 
-$stmtAtualizaVencidos = $pdo->prepare("UPDATE agendamentos SET status = 'concluido' WHERE (status IS NULL OR status NOT IN ('concluido', 'cancelado')) AND STR_TO_DATE(CONCAT(data_agendamento, ' ', horario), '%Y-%m-%d %H:%i:%s') < ?");
-$stmtAtualizaVencidos->execute([$dataHoraAtual]);
+$stmtAtualizaVencidos = $pdo->prepare("UPDATE agendamentos SET status = 'concluido' WHERE (status IS NULL OR status NOT IN ('concluido', 'cancelado')) AND (data_agendamento < ? OR (data_agendamento = ? AND horario < ?))");
+$stmtAtualizaVencidos->execute([$dataHoje, $dataHoje, $horaAtual]);
 
 $totalAgendamentos = $pdo->query("SELECT COUNT(*) FROM agendamentos")->fetchColumn();
 $concluidos        = $pdo->query("SELECT COUNT(*) FROM agendamentos WHERE status = 'concluido'")->fetchColumn();
@@ -118,8 +118,8 @@ $barbeirosMap = [
 if (array_key_exists($pagina, $barbeirosMap)) {
     $barbeiroAtual = $barbeirosMap[$pagina];
     
-    $stmtAgenda = $pdo->prepare("SELECT * FROM agendamentos WHERE barbeiro = ? AND data_agendamento = ? AND (status IS NULL OR status NOT IN ('concluido', 'cancelado')) AND STR_TO_DATE(CONCAT(data_agendamento, ' ', horario), '%Y-%m-%d %H:%i:%s') >= ? ORDER BY horario ASC");
-    $stmtAgenda->execute([$barbeiroAtual['nome'], $dataHoje, $dataHoraAtual]);
+    $stmtAgenda = $pdo->prepare("SELECT * FROM agendamentos WHERE barbeiro = ? AND data_agendamento = ? AND (status IS NULL OR status NOT IN ('concluido', 'cancelado')) AND horario >= ? ORDER BY horario ASC");
+    $stmtAgenda->execute([$barbeiroAtual['nome'], $dataHoje, $horaAtual]);
     $agendamentosBarbeiro = $stmtAgenda->fetchAll();
 
     $stmtConcluidos = $pdo->prepare("SELECT * FROM agendamentos WHERE barbeiro = ? AND data_agendamento = ? AND status = 'concluido' ORDER BY horario DESC");
