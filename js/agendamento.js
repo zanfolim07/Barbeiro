@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
 
-  // Máscara e formatação automática para o campo de Telefone
   const telefoneInput = document.getElementById('telefone');
   if (telefoneInput) {
     telefoneInput.addEventListener('input', (e) => {
@@ -154,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
     radio.addEventListener('change', atualizarHorariosOcupados);
   });
 
-  // Validação estrita no envio do formulário (Telefone e E-mail completos)
   const form = document.getElementById('form-agendamento');
   if (form) {
     form.addEventListener('submit', (e) => {
@@ -162,7 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const emailInput = document.getElementById('email');
       const emailValor = emailInput ? emailInput.value.trim() : '';
       
-      // Regex que valida se o e-mail possui estrutura completa (ex: texto@dominio.com)
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (!emailRegex.test(emailValor)) {

@@ -20,7 +20,7 @@ session_start();
     <div class="overlay"></div>
     
     <nav class="navbar">
-      <!-- Botão Hambúrguer para Mobile -->
+
       <button class="hamburger-btn" id="hamburger-btn" aria-label="Abrir Menu">
         <span class="bar"></span>
         <span class="bar"></span>
@@ -36,7 +36,6 @@ session_start();
         <a href="#contato">Contato</a>
       </div>
 
-      <!-- Área de Login / Perfil Dinâmica com Dropdown -->
       <div class="user-area">
         <?php if (isset($_SESSION['usuario_nome'])): ?>
           <div class="user-menu-wrapper">
@@ -318,7 +317,6 @@ session_start();
           <p><strong>Sábado:</strong> 08:00 às 18:00</p>
         </div>
         
-        <!-- Formulário da Newsletter (AJAX / Sem reload) -->
         <form id="form-newsletter" class="newsletter-block">
           <label for="email">Receba nossas novidades:</label>
 
@@ -327,7 +325,6 @@ session_start();
             <button type="submit" class="btn-submit">Enviar</button>
           </div>
 
-          <!-- Mensagem de feedback gerenciada pelo JavaScript -->
           <span id="newsletter-msg" class="newsletter-msg" style="display: none;"></span>
         </form>
       </div>
@@ -343,6 +340,7 @@ session_start();
     </div>
   </footer>
 
-  <script src="js/script.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/carrossel.js"></script>
 </body>
 </html>

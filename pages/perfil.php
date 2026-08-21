@@ -2,7 +2,6 @@
 session_start();
 require_once __DIR__ . '/../php/conexao.php';
 
-// 1. VERIFICA SE O USUÁRIO ESTÁ LOGADO
 if (!isset($_SESSION['usuario_id']) && !isset($_SESSION['usuario_email'])) {
     header('Location: login.php');
     exit;
@@ -15,13 +14,9 @@ $usuario_nome  = $_SESSION['usuario_nome'] ?? 'Cliente';
 $sucesso = null;
 $erro    = null;
 
-// --------------------------------------------------------------------------
-// 2. PROCESSAMENTO DAS AÇÕES (POST)
-// --------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao = $_POST['acao'] ?? '';
 
-    // --- AÇÃO: ATUALIZAR DADOS PESSOAIS ---
     if ($acao === 'atualizar_perfil') {
         $nome     = trim($_POST['nome'] ?? '');
         $email    = trim($_POST['email'] ?? '');
@@ -37,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':id'       => $usuario_id
                 ]);
 
-                // Atualiza a sessão
                 $_SESSION['usuario_nome']     = $nome;
                 $_SESSION['usuario_email']    = $email;
                 $_SESSION['usuario_telefone'] = $telefone;
@@ -51,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // --- AÇÃO: ALTERAR SENHA ---
     if ($acao === 'alterar_senha') {
         $senha_atual = $_POST['senha_atual'] ?? '';
         $nova_senha  = $_POST['nova_senha'] ?? '';
@@ -62,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($nova_senha !== $confirmar) {
             $erro = "A nova senha e a confirmação não coincidem.";
         } else {
-            // Verifica a senha atual
             $stmt = $pdo->prepare("SELECT senha FROM usuarios WHERE id = :id");
             $stmt->execute([':id' => $usuario_id]);
             $user = $stmt->fetch();
@@ -78,7 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // --- AÇÃO: CANCELAR AGENDAMENTO ---
     if ($acao === 'cancelar_agendamento') {
         $agendamento_id = $_POST['agendamento_id'] ?? '';
         if (!empty($agendamento_id)) {
@@ -89,7 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':uid'   => $usuario_id,
                     ':email' => $usuario_email
                 ]);
-                // Redireciona mantendo o usuário na aba de agendamentos
                 header("Location: perfil.php?tab=agendamentos");
                 exit;
             } catch (PDOException $e) {
@@ -99,9 +89,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// --------------------------------------------------------------------------
-// 3. BUSCAR DADOS ATUALIZADOS DO USUÁRIO
-// --------------------------------------------------------------------------
 $stmtUser = $pdo->prepare("SELECT * FROM usuarios WHERE id = :id OR email = :email LIMIT 1");
 $stmtUser->execute([':id' => $usuario_id, ':email' => $usuario_email]);
 $dadosUsuario = $stmtUser->fetch(PDO::FETCH_ASSOC);
@@ -110,9 +97,6 @@ $nomeVal     = $dadosUsuario['nome'] ?? $_SESSION['usuario_nome'] ?? '';
 $emailVal    = $dadosUsuario['email'] ?? $_SESSION['usuario_email'] ?? '';
 $telefoneVal = $dadosUsuario['telefone'] ?? $_SESSION['usuario_telefone'] ?? '';
 
-// --------------------------------------------------------------------------
-// 4. BUSCAR AGENDAMENTOS DO USUÁRIO
-// --------------------------------------------------------------------------
 $stmtAgendamentos = $pdo->prepare("
     SELECT * FROM agendamentos 
     WHERE (usuario_id = :uid OR email = :email) 
@@ -125,7 +109,6 @@ $stmtAgendamentos->execute([
 ]);
 $agendamentos = $stmtAgendamentos->fetchAll(PDO::FETCH_ASSOC);
 
-// Tabela de preços estática para exibição do valor na tabela
 $preciosServicos = [
     'Corte Masculino'    => '45,00',
     'Corte de Cabelo'   => '45,00',
@@ -155,7 +138,6 @@ $preciosServicos = [
 </head>
 <body>
 
-  <!-- CABEÇALHO -->
   <header class="main-header">
     <nav class="navbar">
       <button class="hamburger-btn" aria-label="Abrir Menu">
@@ -181,10 +163,8 @@ $preciosServicos = [
 
   <main class="profile-container">
     
-    <!-- Título Dinâmico -->
     <h1 class="profile-title" id="user-greeting">Olá, <?= htmlspecialchars($nomeVal) ?></h1>
 
-    <!-- Feedback Mensagens -->
     <?php if ($sucesso): ?>
       <div class="alert-box success">
         <i class="fa-solid fa-circle-check"></i>
@@ -199,7 +179,6 @@ $preciosServicos = [
       </div>
     <?php endif; ?>
 
-    <!-- Botões de Alternância de Abas -->
     <div class="view-switch-wrapper">
       <div class="view-switch">
         <button type="button" class="switch-btn active" id="tab-perfil">Perfil</button>
@@ -207,11 +186,9 @@ $preciosServicos = [
       </div>
     </div>
 
-    <!-- ABA 1: PERFIL (DADOS PESSOAIS E BOTÃO ALTERAR SENHA) -->
-    <section class="view-section" id="section-perfil">
+  <section class="view-section" id="section-perfil">
       
-      <!-- Visão: Dados do Usuário -->
-      <div class="profile-card" id="card-dados-usuario">
+    <div class="profile-card" id="card-dados-usuario">
         <form class="profile-form" id="form-perfil" method="POST" action="perfil.php">
           <input type="hidden" name="acao" value="atualizar_perfil">
 
@@ -237,7 +214,6 @@ $preciosServicos = [
         </form>
       </div>
 
-      <!-- Visão: Form de Alterar Senha (Inicia oculto) -->
       <div class="profile-card hidden" id="card-alterar-senha">
         <h2 class="card-title-center">Alterar senha</h2>
         
@@ -283,7 +259,6 @@ $preciosServicos = [
 
     </section>
 
-    <!-- ABA 2: AGENDAMENTOS (TABELA DINÂMICA) -->
     <section class="view-section hidden" id="section-agendamentos">
       <div class="appointments-wrapper">
         <table class="appointments-table">
@@ -334,7 +309,6 @@ $preciosServicos = [
 
   </main>
 
-  <!-- RODAPÉ BANNER -->
   <footer class="footer-banner">
     <img src="../img/banner-footer.jpg" alt="Fundo Rodapé" class="banner-bg-img">
     <div class="overlay"></div>
@@ -363,6 +337,7 @@ $preciosServicos = [
     </div>
   </footer>
 
-  <script src="../js/script.js"></script>
+  <script src="../js/main.js"></script>
+<script src="../js/auth.js"></script>
 </body>
 </html>

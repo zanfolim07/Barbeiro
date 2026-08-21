@@ -1,10 +1,3 @@
-/* ==========================================================================
-   PÁGINA INICIAL (HOME.CSS)
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   1. HERO SECTION
-   -------------------------------------------------------------------------- */
 .hero {
   position: relative;
   min-height: 80vh;
@@ -89,9 +82,6 @@
   color: var(--text-light);
 }
 
-/* --------------------------------------------------------------------------
-   2. SOBRE SECTION
-   -------------------------------------------------------------------------- */
 .about-section {
   padding: 5rem 1.5rem;
   max-width: 72rem;
@@ -127,9 +117,6 @@
   box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.12);
 }
 
-/* --------------------------------------------------------------------------
-   3. SERVIÇOS SECTION (CARROSSEL)
-   -------------------------------------------------------------------------- */
 .services-section {
   padding: 4rem 1.5rem 6rem 1.5rem;
   text-align: center;
@@ -150,7 +137,6 @@
   gap: 1rem;
 }
 
-/* Setas de Navegação (Círculo completamente removido) */
 .nav-arrow {
   background: none !important;
   background-color: transparent !important;
@@ -183,7 +169,6 @@
   box-shadow: none !important;
 }
 
-/* Grid com Scroll Horizontal */
 .services-grid {
   display: flex;
   flex-direction: row;
@@ -191,12 +176,12 @@
   width: 100%;
   overflow-x: auto;
   scroll-behavior: smooth;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none; 
   padding: 0.5rem 0;
 }
 
 .services-grid::-webkit-scrollbar {
-  display: none; /* Chrome, Safari e Edge */
+  display: none; 
 }
 
 .service-card {
@@ -207,7 +192,7 @@
   text-align: left;
   display: flex;
   flex-direction: column;
-  flex: 0 0 100%; /* No mobile exibe 1 por vez */
+  flex: 0 0 100%; 
   transition: transform 0.3s ease;
 }
 
@@ -249,9 +234,6 @@
   font-size: 0.85rem;
 }
 
-/* --------------------------------------------------------------------------
-   4. BARBEIROS SECTION
-   -------------------------------------------------------------------------- */
 .barbers-section {
   padding: 4rem 1.5rem 6rem 1.5rem;
   text-align: center;
@@ -338,9 +320,6 @@
   color: var(--text-muted);
 }
 
-/* --------------------------------------------------------------------------
-   5. BANNER CONTATO
-   -------------------------------------------------------------------------- */
 .contact-banner {
   position: relative;
   overflow: hidden;
@@ -396,9 +375,6 @@
   width: 1.25rem;
 }
 
-/* --------------------------------------------------------------------------
-   6. FEEDBACKS SECTION
-   -------------------------------------------------------------------------- */
 .feedbacks-section {
   padding: 8rem 1.5rem;
   max-width: 72rem;
@@ -462,9 +438,6 @@
   line-height: 1.5;
 }
 
-/* --------------------------------------------------------------------------
-   7. FOOTER
-   -------------------------------------------------------------------------- */
 footer,
 .footer {
   position: relative;
@@ -475,9 +448,6 @@ footer,
   border-bottom-right-radius: 0;
 }
 
-/* --------------------------------------------------------------------------
-   SOBREPOSIÇÃO DA NAVBAR EXCLUSIVA PARA A HOME (FUNDO ESCURO / HERO)
-   -------------------------------------------------------------------------- */
 .hero .nav-links a,
 .hero .user-icon {
   color: var(--text-light) !important;
@@ -493,9 +463,6 @@ footer,
   background-color: var(--text-light) !important;
 }
 
-/* --------------------------------------------------------------------------
-   MEDIA QUERIES ESPECÍFICAS DA HOME
-   -------------------------------------------------------------------------- */
 @media (min-width: 37.5em) {
   .about-container {
     flex-direction: row;

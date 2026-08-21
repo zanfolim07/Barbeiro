@@ -1,8 +1,3 @@
-/* ==========================================================================
-   PÁGINA DE PERFIL & AGENDAMENTOS (PERFIL.CSS)
-   ========================================================================== */
-
-/* Container Principal */
 .profile-container {
   max-width: 68rem;
   margin: 3rem auto 5rem auto;
@@ -10,7 +5,6 @@
   min-height: 60vh;
 }
 
-/* Saudação / Título Dinâmico */
 .profile-title {
   text-align: center;
   font-size: clamp(1.8rem, 4vw, 2.4rem);
@@ -19,7 +13,6 @@
   margin-bottom: 2rem;
 }
 
-/* Toggle Switch (Abas: Perfil / Agendamentos) */
 .view-switch-wrapper {
   display: flex;
   justify-content: center;
@@ -51,7 +44,6 @@
   color: #fff;
 }
 
-/* Card do Perfil e Alterar Senha */
 .profile-card {
   background-color: #f7f7f7;
   border-radius: 1.5rem;
@@ -76,7 +68,6 @@
   gap: 1.25rem;
 }
 
-/* Tabela de Agendamentos */
 .appointments-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -118,7 +109,6 @@
   border-bottom-right-radius: var(--radius-pill, 2rem);
 }
 
-/* Botão de Cancelar Agendamento */
 .btn-cancel {
   background-color: var(--primary-color, #7b212d);
   color: #fff;
@@ -135,9 +125,6 @@
   opacity: 0.88;
 }
 
-/* ==========================================================================
-   REGRAS DE OCULTAÇÃO DINÂMICA (ESSENCIAL PARA FUNCIONAR A TROCA)
-   ========================================================================== */
 .hidden,
 .profile-card.hidden,
 .view-section.hidden {

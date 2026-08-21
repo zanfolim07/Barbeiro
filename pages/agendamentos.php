@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// O usuário precisa estar logado/cadastrado para agendar
 if (!isset($_SESSION['usuario_id']) || empty($_SESSION['usuario_id'])) {
     header("Location: login.php");
     exit;
@@ -10,7 +9,6 @@ if (!isset($_SESSION['usuario_id']) || empty($_SESSION['usuario_id'])) {
 $sucesso = null;
 $erro = null;
 
-// Processamento do formulário de agendamento
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once '../php/conexao.php';
 
@@ -24,11 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data_agendamento = trim($_POST['data_agendamento'] ?? '');
     $horario = trim($_POST['horario'] ?? '');
 
-    // Remove TUDO que não for número do telefone
     $telefone = preg_replace('/\D/', '', $telefone_bruto);
     $tamanho_tel = strlen($telefone);
 
-    // Validações rigorosas
     if (empty($nome) || empty($telefone) || empty($email) || empty($servico) || empty($data_agendamento) || empty($horario)) {
         $erro = "Por favor, preencha todos os campos obrigatórios.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $email)) {
@@ -64,7 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 
-  <!-- CABEÇALHO -->
   <header class="main-header">
     <nav class="navbar">
       <button class="hamburger-btn" aria-label="Abrir Menu">
@@ -118,7 +113,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <input type="hidden" name="data_agendamento" id="input-data" value="">
       <input type="hidden" name="horario" id="input-horario" value="">
 
-      <!-- COLUNA DA ESQUERDA -->
       <div class="form-column">
         
         <div class="form-group">
@@ -184,7 +178,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       </div>
 
-      <!-- COLUNA DA DIREITA -->
       <div class="schedule-column">
         
         <div class="calendar-wrapper">
@@ -262,6 +255,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </footer>
 
+  <script src="../js/main.js"></script>
+  <script src="../js/auth.js"></script>
   <script src="../js/agendamento.js"></script>
 </body>
 </html>

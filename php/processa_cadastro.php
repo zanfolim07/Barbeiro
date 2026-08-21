@@ -20,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        // Verifica se o e-mail já existe
         $stmtCheck = $pdo->prepare("SELECT id FROM usuarios WHERE email = :email");
         $stmtCheck->execute([':email' => $email]);
 
@@ -29,7 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Criptografa a senha
         $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
 
         $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, telefone, senha) VALUES (:nome, :email, :telefone, :senha)");
@@ -40,15 +38,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':senha' => $senhaHash
         ]);
 
-        // Pega o ID da conta recém-criada
         $novoId = $pdo->lastInsertId();
 
-        // Faz login automático do novo usuário
         $_SESSION['usuario_id'] = $novoId;
         $_SESSION['usuario_nome'] = $nome;
         $_SESSION['usuario_email'] = $email;
 
-        // Redireciona direto para a tela principal
         header("Location: ../index.php");
         exit;
 

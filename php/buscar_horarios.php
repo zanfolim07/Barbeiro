@@ -7,7 +7,7 @@ $data = $_GET['data'] ?? '';
 $barbeiro = $_GET['barbeiro'] ?? '';
 
 if (!empty($data)) {
-    // Busca os horários agendados para aquele dia e barbeiro (desconsiderando cancelados)
+    
     $sql = "SELECT horario FROM agendamentos WHERE data_agendamento = :data AND (status != 'cancelado' OR status IS NULL)";
     $params = [':data' => $data];
 

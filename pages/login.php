@@ -16,10 +16,8 @@
 <body>
   <main class="auth-container">
     
-    <!-- MENSAGEM DE FEEDBACK GERAL -->
     <div id="auth-alert" class="auth-alert" style="display: none;"></div>
 
-    <!-- CARD DE LOGIN -->
     <div class="auth-card" id="card-login">
       <div class="auth-header">
         <h1>Login</h1>
@@ -50,7 +48,6 @@
       </div>
     </div>
 
-    <!-- CARD DE CADASTRO -->
     <div class="auth-card hidden" id="card-cadastro">
       <div class="auth-header">
         <h1>Criar conta</h1>
@@ -108,6 +105,7 @@
 
   </main>
 
-  <script src="../js/script.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/auth.js"></script> 
 </body>
 </html>

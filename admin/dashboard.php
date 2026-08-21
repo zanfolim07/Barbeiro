@@ -1,352 +1,450 @@
 <?php
-/* ==========================================================================
-   PAINEL DE ADMINISTRAÇÃO - BARBEARIA (ADMIN/DASHBOARD.PHP)
-   ========================================================================== */
+// Ativa a exibição de erros temporariamente para evitar tela branca caso ocorra algo
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-// Importa a conexão com o banco de dados (que está na pasta php/)
+session_start();
+
+// Verifica se o administrador está logado, caso contrário redireciona para o login
+if (!isset($_SESSION['admin_logado'])) {
+    header('Location: login-admin.php');
+    exit;
+}
+
 require_once __DIR__ . '/../php/conexao.php';
 
-// --- AÇÕES DO PAINEL (ATUALIZAR STATUS OU DELETAR) ---
+$pagina = $_GET['pagina'] ?? 'inicio';
+
+// Ações do sistema (Exclusão, Mudança de Status do Corte e Disparo de Mensagens via WhatsApp)
 if (isset($_GET['action'])) {
     $action = $_GET['action'];
     $id = intval($_GET['id'] ?? 0);
+    
+    if ($action === 'deletar_usuario' && $id > 0) {
+        $pdo->prepare("DELETE FROM usuarios WHERE id = ?")->execute([$id]);
+        header('Location: ?pagina=' . $pagina . '&msg=Usuário+removido!'); exit;
+    } elseif ($action === 'deletar_newsletter' && $id > 0) {
+        $pdo->prepare("DELETE FROM newsletter WHERE id = ?")->execute([$id]);
+        header('Location: ?pagina=' . $pagina . '&msg=Inscrito+removido!'); exit;
+    } elseif ($action === 'deletar_agendamento' && $id > 0) {
+        $pdo->prepare("DELETE FROM agendamentos WHERE id = ?")->execute([$id]);
+        header('Location: ?pagina=' . $pagina . '&msg=Agendamento+removido!'); exit;
+    } elseif ($action === 'deletar_admin' && $id > 0) {
+        if ($id == $_SESSION['admin_id']) {
+            header('Location: ?pagina=' . $pagina . '&msg=Você+não+pode+se+apagar!'); exit;
+        }
+        $pdo->prepare("DELETE FROM administradores WHERE id = ?")->execute([$id]);
+        header('Location: ?pagina=' . $pagina . '&msg=Administrador+removido!'); exit;
+    } elseif ($action === 'iniciar_corte' && $id > 0) {
+        $pdo->prepare("UPDATE agendamentos SET status = 'em_andamento' WHERE id = ?")->execute([$id]);
+        header('Location: ?pagina=' . $pagina); exit;
+    } elseif ($action === 'encerrar_corte' && $id > 0) {
+        $pdo->prepare("UPDATE agendamentos SET status = 'concluido' WHERE id = ?")->execute([$id]);
+        header('Location: ?pagina=' . $pagina); exit;
+    } elseif ($action === 'enviar_aviso' && $id > 0) {
+        $tipoAviso = $_GET['tipo'] ?? 'confirmar';
+        
+        $stmtAg = $pdo->prepare("SELECT * FROM agendamentos WHERE id = ?");
+        $stmtAg->execute([$id]);
+        $agendamento = $stmtAg->fetch();
 
-    if ($id > 0) {
-        if ($action === 'concluir') {
-            $stmt = $pdo->prepare("UPDATE agendamentos SET status = 'concluido' WHERE id = :id");
-            $stmt->execute([':id' => $id]);
-            header('Location: dashboard.php?msg=Status+atualizado!');
+        if ($agendamento && !empty($agendamento['telefone'])) {
+            $telefone = preg_replace('/[^0-9]/', '', $agendamento['telefone']);
+            $horario = $agendamento['horario'] ?? 'horário agendado';
+            
+            if ($tipoAviso === 'confirmar') {
+                $mensagem = "Olá, {$agendamento['nome']}! Passando para confirmar seu horário às {$horario} na BarberPro. Tudo certo?";
+            } else {
+                $mensagem = "Olá, {$agendamento['nome']}! Informamos que tivemos um pequeno atraso na barbearia e entraremos em atendimento em instantes. Agradecemos a compreensão!";
+            }
+            
+            $urlWhatsapp = "https://api.whatsapp.com/send?phone=55{$telefone}&text=" . urlencode($mensagem);
+            header("Location: " . $urlWhatsapp);
             exit;
-        } elseif ($action === 'deletar_agendamento') {
-            $stmt = $pdo->prepare("DELETE FROM agendamentos WHERE id = :id");
-            $stmt->execute([':id' => $id]);
-            header('Location: dashboard.php?msg=Agendamento+removido!');
+        } else {
+            header('Location: ?pagina=' . $pagina . '&msg=Telefone+não+encontrado!');
             exit;
-        } elseif ($action === 'deletar_newsletter') {
-            $stmt = $pdo->prepare("DELETE FROM newsletter WHERE id = :id");
-            $stmt->execute([':id' => $id]);
-            header('Location: dashboard.php?msg=Inscrito+removido!');
+        }
+    } elseif ($action === 'remarcar_cliente') {
+        // Ação para clientes frequentes via GET (usando telefone e nome passados na URL)
+        $telefoneRaw = $_GET['tel'] ?? '';
+        $nomeCliente = $_GET['nome'] ?? 'Cliente';
+        
+        if (!empty($telefoneRaw)) {
+            $telefone = preg_replace('/[^0-9]/', '', $telefoneRaw);
+            $mensagem = "Olá, {$nomeCliente}! Notamos que já faz um tempinho desde seu último corte aqui na BarberPro. Que tal remarcar seu próximo atendimento?";
+            
+            $urlWhatsapp = "https://api.whatsapp.com/send?phone=55{$telefone}&text=" . urlencode($mensagem);
+            header("Location: " . $urlWhatsapp);
             exit;
-        } elseif ($action === 'deletar_usuario') {
-            $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = :id");
-            $stmt->execute([':id' => $id]);
-            header('Location: dashboard.php?msg=Usuário+removido!');
+        } else {
+            header('Location: ?pagina=' . $pagina . '&msg=Telefone+inválido!');
             exit;
         }
     }
 }
 
-// --- CONSULTAS PARA O DASHBOARD ---
-
-// 1. Métricas Totais
+// Dados globais para a página "Inicio"
 $totalAgendamentos = $pdo->query("SELECT COUNT(*) FROM agendamentos")->fetchColumn();
-$totalNewsletter   = $pdo->query("SELECT COUNT(*) FROM newsletter")->fetchColumn();
-$totalUsuarios     = $pdo->query("SELECT COUNT(*) FROM usuarios")->fetchColumn();
-$pendentes         = $pdo->query("SELECT COUNT(*) FROM agendamentos WHERE status = 'pendente' OR status IS NULL OR status = ''")->fetchColumn();
 $concluidos        = $pdo->query("SELECT COUNT(*) FROM agendamentos WHERE status = 'concluido'")->fetchColumn();
+$totalUsuarios     = $pdo->query("SELECT COUNT(*) FROM usuarios")->fetchColumn();
 
-// 2. Lista de Agendamentos (Mais recentes primeiro)
-$sqlAgendamentos = "SELECT * FROM agendamentos ORDER BY id DESC LIMIT 15";
-$agendamentos = $pdo->query($sqlAgendamentos)->fetchAll();
+$usuarios   = $pdo->query("SELECT * FROM usuarios ORDER BY id DESC LIMIT 5")->fetchAll();
+$newsletter = $pdo->query("SELECT * FROM newsletter ORDER BY data_inscricao DESC LIMIT 5")->fetchAll();
+$fidelidade = $pdo->query("SELECT nome, COUNT(*) as total_cortes FROM agendamentos WHERE status = 'concluido' GROUP BY nome ORDER BY total_cortes DESC LIMIT 3")->fetchAll();
+$admins     = $pdo->query("SELECT * FROM administradores ORDER BY id DESC")->fetchAll();
 
-// 3. Lista de Inscritos na Newsletter
-$sqlNewsletter = "SELECT * FROM newsletter ORDER BY data_inscricao DESC LIMIT 20";
-$newsletter = $pdo->query($sqlNewsletter)->fetchAll();
+// Mapeamento dos barbeiros
+$barbeirosMap = [
+    'joao_silva' => [
+        'nome' => 'João Silva',
+        'cargo' => 'Barbeiro profissional'
+    ],
+    'lucas_oliveira' => [
+        'nome' => 'Lucas Oliveira',
+        'cargo' => 'Barbeiro profissional'
+    ],
+    'rafael_costa' => [
+        'nome' => 'Rafael Costa',
+        'cargo' => 'Barbeiro profissional'
+    ]
+];
 
-// 4. Lista de Usuários Cadastrados
-$sqlUsuarios = "SELECT * FROM usuarios ORDER BY id DESC LIMIT 20";
-$usuarios = $pdo->query($sqlUsuarios)->fetchAll();
+if (array_key_exists($pagina, $barbeirosMap)) {
+    $barbeiroAtual = $barbeirosMap[$pagina];
+    
+    $stmtAgenda = $pdo->prepare("SELECT * FROM agendamentos WHERE barbeiro = ? AND (status IS NULL OR status != 'concluido') ORDER BY horario ASC");
+    $stmtAgenda->execute([$barbeiroAtual['nome']]);
+    $agendamentosBarbeiro = $stmtAgenda->fetchAll();
 
+    $minhaAgendaHoje = count($agendamentosBarbeiro);
+    $proximoClienteNome = !empty($agendamentosBarbeiro) ? $agendamentosBarbeiro[0]['nome'] : 'Nenhum';
+    
+    $stmtFin = $pdo->prepare("SELECT COUNT(*) FROM agendamentos WHERE barbeiro = ? AND status = 'concluido'");
+    $stmtFin->execute([$barbeiroAtual['nome']]);
+    $finalizadosHoje = $stmtFin->fetchColumn();
+
+    $stmtFidelidadeBarbeiro = $pdo->prepare("SELECT nome, telefone, email, COUNT(*) as total_cortes FROM agendamentos WHERE barbeiro = ? AND status = 'concluido' GROUP BY nome, telefone, email ORDER BY total_cortes DESC LIMIT 5");
+    $stmtFidelidadeBarbeiro->execute([$barbeiroAtual['nome']]);
+    $clientesFrequentes = $stmtFidelidadeBarbeiro->fetchAll();
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel Administrativo | Barbearia</title>
-  
-  <!-- Fontes & Ícones (FontAwesome) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>BarberPro | Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- CSS da Dashboard -->
+  <link rel="stylesheet" href="../css/geral.css">
   <link rel="stylesheet" href="../css/dashboard.css">
 </head>
 <body>
 
-  <div class="app-container">
-    
-    <!-- 1. SIDEBAR / MENU LATERAL -->
-    <aside class="sidebar">
-      <div>
-        <div class="brand">
-          <i class="fa-solid fa-scissors"></i>
-          <span>Barbearia</span>
-        </div>
-        
+  <aside class="sidebar">
+    <div>
+        <div class="brand"><i class="fa-solid fa-scissors"></i> BarberPro</div>
         <ul class="nav-menu">
-          <li class="nav-item active">
-            <a href="dashboard.php">
-              <i class="fa-solid fa-chart-line"></i>
-              <span>Dashboard</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="../index.php" target="_blank">
-              <i class="fa-solid fa-globe"></i>
-              <span>Ver Site</span>
-            </a>
-          </li>
+            <li class="<?= $pagina === 'inicio' ? 'active' : '' ?>">
+                <a href="?pagina=inicio"><i class="fa-solid fa-house"></i> Inicio</a>
+            </li>
+            <li class="<?= $pagina === 'joao_silva' ? 'active' : '' ?>">
+                <a href="?pagina=joao_silva"><i class="fa-solid fa-user"></i> João Silva</a>
+            </li>
+            <li class="<?= $pagina === 'lucas_oliveira' ? 'active' : '' ?>">
+                <a href="?pagina=lucas_oliveira"><i class="fa-solid fa-user"></i> Lucas Oliveira</a>
+            </li>
+            <li class="<?= $pagina === 'rafael_costa' ? 'active' : '' ?>">
+                <a href="?pagina=rafael_costa"><i class="fa-solid fa-user"></i> Rafael Costa</a>
+            </li>
+            <li class="<?= $pagina === 'profissionais' ? 'active' : '' ?>">
+                <a href="?pagina=profissionais"><i class="fa-solid fa-user-gear"></i> Cadastrar Profissional</a>
+            </li>
         </ul>
-      </div>
+    </div>
+    <div class="footer-nav">
+        <p style="margin: 8px 0;"><a href="../index.php" style="color: inherit; text-decoration: none;"><i class="fa-solid fa-globe"></i> Site</a></p>
+        <p style="margin: 8px 0;"><a href="login-admin.php?action=sair" style="color: inherit; text-decoration: none;"><i class="fa-solid fa-right-from-bracket"></i> Sair</a></p>
+    </div>
+  </aside>
 
-      <div class="sidebar-footer">
-        <a href="../index.php" class="btn-logout">
-          <i class="fa-solid fa-right-from-bracket"></i>
-          <span>Sair</span>
-        </a>
-      </div>
-    </aside>
-
-    <!-- 2. CONTEÚDO PRINCIPAL -->
-    <main class="main-wrapper">
-      
-      <!-- Topo da Página -->
-      <header class="header-banner">
-        <div class="header-title">
-          <h1>Painel de Controle</h1>
-          <p>Acompanhe agendamentos, clientes cadastrados e inscritos em tempo real.</p>
+  <main class="main">
+    <?php if ($pagina === 'inicio'): ?>
+        <!-- PÁGINA INICIAL GERAL -->
+        <div class="header">
+            <h1>Inicio</h1> 
+            <strong>Painel Administrativo Geral</strong>
         </div>
-
-        <div class="admin-profile">
-          <div class="admin-avatar">A</div>
-          <span class="admin-name">Administrador</span>
-        </div>
-      </header>
-
-      <?php if (isset($_GET['msg'])): ?>
-        <div class="alert-box success">
-          <span><i class="fa-solid fa-circle-check"></i> <?= htmlspecialchars($_GET['msg']) ?></span>
-        </div>
-      <?php endif; ?>
-
-      <!-- Cards de Estatísticas -->
-      <section class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-icon gold">
-            <i class="fa-solid fa-calendar-check"></i>
-          </div>
-          <div class="metric-data">
-            <h3><?= $totalAgendamentos ?></h3>
-            <p>Total Agendamentos</p>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon amber">
-            <i class="fa-solid fa-clock"></i>
-          </div>
-          <div class="metric-data">
-            <h3><?= $pendentes ?></h3>
-            <p>Pendentes</p>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon green">
-            <i class="fa-solid fa-circle-check"></i>
-          </div>
-          <div class="metric-data">
-            <h3><?= $concluidos ?></h3>
-            <p>Concluídos</p>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon gold">
-            <i class="fa-solid fa-users"></i>
-          </div>
-          <div class="metric-data">
-            <h3><?= $totalUsuarios ?></h3>
-            <p>Usuários Cadastrados</p>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon blue">
-            <i class="fa-solid fa-envelope"></i>
-          </div>
-          <div class="metric-data">
-            <h3><?= $totalNewsletter ?></h3>
-            <p>Inscritos Newsletter</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Tabela de Usuários Cadastrados -->
-      <div class="content-card" style="margin-bottom: 2rem;">
-        <div class="card-header">
-          <h2><i class="fa-solid fa-users-gear"></i> Usuários Cadastrados</h2>
-          <span class="badge-count"><?= count($usuarios) ?> cadastros</span>
-        </div>
-
-        <div class="table-responsive">
-          <table class="custom-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nome / Telefone</th>
-                <th>E-mail</th>
-                <th>Senha (Hash)</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php if (count($usuarios) > 0): ?>
-                <?php foreach ($usuarios as $user): ?>
-                  <tr>
-                    <td><strong>#<?= $user['id'] ?></strong></td>
-                    <td>
-                      <div class="client-info">
-                        <strong><?= htmlspecialchars($user['nome']) ?></strong>
-                        <span><i class="fa-brands fa-whatsapp"></i> <?= htmlspecialchars($user['telefone'] ?? 'Não informado') ?></span>
-                      </div>
-                    </td>
-                    <td><?= htmlspecialchars($user['email']) ?></td>
-                    <td>
-                      <code style="font-size:0.75rem; color:var(--text-muted); word-break: break-all;">
-                        <?= htmlspecialchars($user['senha']) ?>
-                      </code>
-                    </td>
-                    <td>
-                      <a href="dashboard.php?action=deletar_usuario&id=<?= $user['id'] ?>" class="action-btn delete" title="Excluir Usuário" onclick="return confirm('Tem certeza que deseja excluir este usuário?');">
-                        <i class="fa-solid fa-trash-can"></i>
-                      </a>
-                    </td>
-                  </tr>
-                <?php endforeach; ?>
-              <?php else: ?>
-                <tr>
-                  <td colspan="5" class="empty-state">Nenhum usuário cadastrado.</td>
-                </tr>
-              <?php endif; ?>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Grade Principal (Agendamentos + Newsletter) -->
-      <div class="dashboard-grid">
         
-        <!-- Tabela de Agendamentos -->
-        <div class="content-card">
-          <div class="card-header">
-            <h2><i class="fa-solid fa-list-check"></i> Próximos Agendamentos</h2>
-            <span class="badge-count"><?= count($agendamentos) ?> registros</span>
-          </div>
+        <section class="grid-metrics">
+            <div class="card">
+                <h3><i class="fa-solid fa-calendar-check"></i> Total de agendamentos</h3>
+                <p style="font-size: 2rem; font-weight: bold; margin: 10px 0 0 0;"><?=$totalAgendamentos?></p>
+            </div>
+            <div class="card">
+                <h3><i class="fa-solid fa-circle-check"></i> Cortes concluídos</h3>
+                <p style="font-size: 2rem; font-weight: bold; margin: 10px 0 0 0;"><?=$concluidos?></p>
+            </div>
+            <div class="card">
+                <h3><i class="fa-solid fa-users"></i> Usuários cadastrados</h3>
+                <p style="font-size: 2rem; font-weight: bold; margin: 10px 0 0 0;"><?=$totalUsuarios?></p>
+            </div>
+        </section>
 
-          <div class="table-responsive">
-            <table class="custom-table">
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Serviço / Barbeiro</th>
-                  <th>Data & Hora</th>
-                  <th>Obs.</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php if (count($agendamentos) > 0): ?>
-                  <?php foreach ($agendamentos as $item): ?>
+        <div class="card">
+            <h2><i class="fa-solid fa-users-gear"></i> Clientes cadastrados</h2>
+            <table>
+                <thead><tr><th>ID</th><th>Nome</th><th>Telefone</th><th>Email</th><th>Data</th><th>Ação</th></tr></thead>
+                <tbody>
+                    <?php foreach($usuarios as $u): ?>
                     <tr>
-                      <td>
-                        <div class="client-info">
-                          <strong><?= htmlspecialchars($item['nome']) ?></strong>
-                          <span><i class="fa-brands fa-whatsapp"></i> <?= htmlspecialchars($item['telefone']) ?></span>
-                          <span style="font-size: 0.75rem; color: var(--text-muted);"><?= htmlspecialchars($item['email']) ?></span>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="client-info">
-                          <strong><?= htmlspecialchars($item['servico']) ?></strong>
-                          <span>Com: <?= htmlspecialchars($item['barbeiro']) ?></span>
-                        </div>
-                      </td>
-                      <td>
-                        <strong><?= date('d/m/Y', strtotime($item['data_agendamento'])) ?></strong><br>
-                        <span style="color:var(--text-muted); font-size:0.85rem; font-weight: 600;"><i class="fa-regular fa-clock"></i> <?= htmlspecialchars($item['horario']) ?></span>
-                      </td>
-                      <td>
-                        <span style="font-size: 0.8rem; color: var(--text-muted);">
-                          <?= !empty($item['observacao']) ? htmlspecialchars($item['observacao']) : '-' ?>
-                        </span>
-                      </td>
-                      <td>
-                        <?php 
-                          $st = !empty($item['status']) ? strtolower($item['status']) : 'pendente';
-                          $stClass = ($st === 'concluido') ? 'concluido' : (($st === 'cancelado') ? 'cancelado' : 'pendente');
-                        ?>
-                        <span class="status-badge <?= $stClass ?>">
-                          <?= ucfirst($st) ?>
-                        </span>
-                      </td>
-                      <td>
-                        <?php if (($item['status'] ?? 'pendente') !== 'concluido'): ?>
-                          <a href="dashboard.php?action=concluir&id=<?= $item['id'] ?>" class="action-btn check" title="Marcar como Concluído">
-                            <i class="fa-solid fa-check"></i>
-                          </a>
-                        <?php endif; ?>
-                        <a href="dashboard.php?action=deletar_agendamento&id=<?= $item['id'] ?>" class="action-btn delete" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir?');">
-                          <i class="fa-solid fa-trash-can"></i>
-                        </a>
-                      </td>
+                        <td><?=$u['id']?></td>
+                        <td><?=$u['nome']?></td>
+                        <td><?=$u['telefone']?></td>
+                        <td><?=$u['email']?></td>
+                        <td><?=$u['data_cadastro'] ?? '-'?></td>
+                        <td><a href="?pagina=inicio&action=deletar_usuario&id=<?=$u['id']?>" class="action-link"><i class="fa-solid fa-trash"></i></a></td>
                     </tr>
-                  <?php endforeach; ?>
-                <?php else: ?>
-                  <tr>
-                    <td colspan="6" class="empty-state">Nenhum agendamento encontrado.</td>
-                  </tr>
-                <?php endif; ?>
-              </tbody>
+                    <?php endforeach; ?>
+                </tbody>
             </table>
-          </div>
         </div>
 
-        <!-- Lista de Inscritos na Newsletter -->
-        <div class="content-card">
-          <div class="card-header">
-            <h2><i class="fa-solid fa-paper-plane"></i> Newsletter</h2>
-            <span class="badge-count"><?= count($newsletter) ?> e-mails</span>
-          </div>
-
-          <div class="newsletter-list">
-            <?php if (count($newsletter) > 0): ?>
-              <?php foreach ($newsletter as $news): ?>
-                <div class="newsletter-item">
-                  <div>
-                    <div class="newsletter-email"><?= htmlspecialchars($news['email']) ?></div>
-                    <div class="newsletter-date">Inscrito em: <?= date('d/m/Y H:i', strtotime($news['data_inscricao'])) ?></div>
-                  </div>
-                  <a href="dashboard.php?action=deletar_newsletter&id=<?= $news['id'] ?>" class="action-btn delete" title="Excluir" onclick="return confirm('Excluir e-mail?');">
-                    <i class="fa-solid fa-trash-can"></i>
-                  </a>
+        <div class="dashboard-bottom-grid">
+            <div class="card">
+                <h2><i class="fa-solid fa-envelope"></i> Lista newsletter</h2>
+                <table>
+                    <thead><tr><th>ID</th><th>Email</th><th>Data</th><th>Ação</th></tr></thead>
+                    <tbody>
+                        <?php foreach($newsletter as $n): ?>
+                        <tr>
+                            <td><?=$n['id']?></td>
+                            <td><?=$n['email']?></td>
+                            <td><?=$n['data_inscricao'] ?? '-'?></td>
+                            <td><a href="?pagina=inicio&action=deletar_newsletter&id=<?=$n['id']?>" class="action-link"><i class="fa-solid fa-trash"></i></a></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card">
+                <h2><i class="fa-solid fa-star"></i> Fidelidade</h2>
+                <?php foreach($fidelidade as $f): ?>
+                <div style="margin-bottom:15px;">
+                    <p style="margin: 0 0 5px 0;"><strong><?=$f['nome']?></strong> (<?=$f['total_cortes']?>/12)</p>
+                    <div class="progress-bar"><div class="progress-fill" style="width: <?=min(($f['total_cortes']/12)*100, 100)?>%;"></div></div>
                 </div>
-              <?php endforeach; ?>
-            <?php else: ?>
-              <div class="empty-state">Nenhum e-mail cadastrado ainda.</div>
-            <?php endif; ?>
-          </div>
+                <?php endforeach; ?>
+            </div>
         </div>
 
-      </div>
+    <?php elseif ($pagina === 'profissionais'): ?>
+        <!-- PÁGINA DE CADASTRO DE PROFISSIONAIS / ADMINS -->
+        <div class="header">
+            <h1>Profissionais / Administradores</h1>
+            <a href="cadastro-admin.php" class="btn-action" style="padding: 10px 20px; text-decoration: none; display: inline-block;"><i class="fa-solid fa-user-plus"></i> Cadastrar Novo</a>
+        </div>
 
-    </main>
+        <div class="card">
+            <h2><i class="fa-solid fa-user-shield"></i> Administradores Cadastrados</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Usuário</th>
+                        <th>Dia Cadastrado</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach($admins as $adm): ?>
+                    <tr>
+                        <td><?=$adm['id']?></td>
+                        <td><?=$adm['nome']?></td>
+                        <td><?=$adm['usuario']?></td>
+                        <td><?=$adm['data_cadastro'] ?? '-'?></td>
+                        <td>
+                            <?php if ($adm['id'] != $_SESSION['admin_id']): ?>
+                                <a href="?pagina=profissionais&action=deletar_admin&id=<?=$adm['id']?>" class="action-link" onclick="return confirm('Deseja realmente apagar este administrador?');"><i class="fa-solid fa-trash"></i></a>
+                            <?php else: ?>
+                                <span style="color: #999; font-size: 0.85rem;" title="Você está logado nesta conta">(Atual)</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
 
-  </div>
+    <?php elseif (array_key_exists($pagina, $barbeirosMap)): ?>
+        <!-- PÁGINA INDIVIDUAL DO BARBEIRO SELECIONADO -->
+        <?php 
+        $b = $barbeirosMap[$pagina]; 
+        
+        $diasSemana = ['Sunday' => 'Domingo', 'Monday' => 'Segunda-feira', 'Tuesday' => 'Terça-feira', 'Wednesday' => 'Quarta-feira', 'Thursday' => 'Quinta-feira', 'Friday' => 'Sexta-feira', 'Saturday' => 'Sábado'];
+        $mesesAno = ['January' => 'janeiro', 'February' => 'fevereiro', 'March' => 'março', 'April' => 'abril', 'May' => 'maio', 'June' => 'junho', 'July' => 'julho', 'August' => 'agosto', 'September' => 'setembro', 'October' => 'outubro', 'November' => 'novembro', 'December' => 'dezembro'];
+        
+        $diaIngles = date('l');
+        $mesIngles = date('F');
+        $dataFormatada = $diasSemana[$diaIngles] . ', ' . date('d') . ' de ' . $mesesAno[$mesIngles];
+        ?>
+        <div class="header">
+            <h1>Bem vindo <?=$b['nome']?></h1>
+            <div class="date-time">
+                <?= ucfirst($dataFormatada) ?><br>
+                <span><?= date('H:i') ?></span>
+            </div>
+        </div>
 
+        <div style="margin-bottom: 10px; font-weight: 600; color: #444;">Resumo da Agenda do dia</div>
+        <section class="grid-metrics">
+            <div class="card">
+                <h3 style="font-size: 0.95rem; color: #555; margin: 0;">Minha Agenda Hoje</h3>
+                <p style="font-size: 2.5rem; font-weight: bold; margin: 8px 0; color: #111;"><?=$minhaAgendaHoje?></p>
+                <span style="font-size: 0.85rem; color: #666;">Agendamentos de hoje</span>
+            </div>
+            <div class="card">
+                <h3 style="font-size: 0.95rem; color: #555; margin: 0;">Proximo cliente</h3>
+                <p style="font-size: 2.2rem; font-weight: bold; margin: 8px 0; color: #111;"><?=$proximoClienteNome?></p>
+                <span style="font-size: 0.85rem; color: #666;">Proximo cliente para atendimento</span>
+            </div>
+            <div class="card">
+                <h3 style="font-size: 0.95rem; color: #555; margin: 0;">Finalizados Hoje</h3>
+                <p style="font-size: 2.5rem; font-weight: bold; margin: 8px 0; color: #111;"><?=$finalizadosHoje?></p>
+                <span style="font-size: 0.85rem; color: #666;">Total de serviços finalizados</span>
+            </div>
+        </section>
+
+        <div class="card">
+            <h2 style="font-size: 1.1rem; margin-top: 0;">Agendamentos Diarios</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Horario</th>
+                        <th>Nome</th>
+                        <th>Telefone</th>
+                        <th>Serviço</th>
+                        <th>Ação</th>
+                        <th>Avisos</th>
+                        <th>Função</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($agendamentosBarbeiro)): ?>
+                        <?php foreach($agendamentosBarbeiro as $ag): ?>
+                        <tr>
+                            <td><?=$ag['horario'] ?? '--:--'?></td>
+                            <td><?=$ag['nome']?></td>
+                            <td><?=$ag['telefone'] ?? '-'?></td>
+                            <td><?=$ag['servico'] ?? 'Corte'?></td>
+                            <td>
+                                <?php if (($ag['status'] ?? '') === 'em_andamento'): ?>
+                                    <a href="?pagina=<?=$pagina?>&action=encerrar_corte&id=<?=$ag['id']?>" class="btn-action encerrar">Encerrar</a>
+                                <?php else: ?>
+                                    <a href="?pagina=<?=$pagina?>&action=iniciar_corte&id=<?=$ag['id']?>" class="btn-action">Iniciar</a>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <div class="dropdown-container">
+                                    <button type="button" class="btn-enviar toggle-dropdown">Enviar</button>
+                                    <div class="dropdown-menu">
+                                        <a href="?pagina=<?=$pagina?>&action=enviar_aviso&tipo=confirmar&id=<?=$ag['id']?>" target="_blank">Confirmar horário</a>
+                                        <a href="?pagina=<?=$pagina?>&action=enviar_aviso&tipo=atraso&id=<?=$ag['id']?>" target="_blank">Avisar atraso</a>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><a href="?pagina=<?=$pagina?>&action=deletar_agendamento&id=<?=$ag['id']?>" class="action-link"><i class="fa-solid fa-trash"></i></a></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr><td colspan="7" style="text-align: center; color: #777;">Nenhum agendamento pendente para este profissional.</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2 style="font-size: 1.1rem; margin-top: 0;">Clientes frequentes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ranking</th>
+                        <th>Nome</th>
+                        <th>Telefone</th>
+                        <th>Email</th>
+                        <th>Avisos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($clientesFrequentes)): ?>
+                        <?php $ranking = 1; foreach($clientesFrequentes as $cf): ?>
+                        <tr>
+                            <td><div class="ranking-circle"><?=$ranking++?></div></td>
+                            <td><?=$cf['nome']?></td>
+                            <td><?=$cf['telefone'] ?? '-'?></td>
+                            <td><?=$cf['email'] ?? '-'?></td>
+                            <td>
+                                <div class="dropdown-container">
+                                    <button type="button" class="btn-enviar toggle-dropdown">Enviar</button>
+                                    <div class="dropdown-menu">
+                                        <a href="?pagina=<?=$pagina?>&action=remarcar_cliente&tel=<?=urlencode($cf['telefone'])?>&nome=<?=urlencode($cf['nome'])?>" target="_blank">Remarcar</a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr><td colspan="5" style="text-align: center; color: #777;">Nenhum cliente frequente cadastrado ainda.</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+  </main>
+
+  <script>
+    document.addEventListener('click', function(e) {
+        const toggle = e.target.closest('.toggle-dropdown');
+        
+        if (toggle) {
+            const container = toggle.closest('.dropdown-container');
+            const menu = container.querySelector('.dropdown-menu');
+            
+            // Fecha todos os outros dropdowns abertos
+            document.querySelectorAll('.dropdown-container').forEach(d => {
+                if (d !== container) {
+                    d.classList.remove('active');
+                    const m = d.querySelector('.dropdown-menu');
+                    if (m) m.style.display = 'none';
+                }
+            });
+            
+            container.classList.toggle('active');
+            
+            if (container.classList.contains('active')) {
+                const rect = toggle.getBoundingClientRect();
+                menu.style.display = 'block';
+                menu.style.position = 'fixed';
+                menu.style.zIndex = '999999';
+                menu.style.left = rect.left + 'px';
+                // Posiciona logo abaixo do botão de forma fixa
+                menu.style.top = (rect.bottom + 6) + 'px';
+                menu.style.bottom = 'auto';
+            } else {
+                menu.style.display = 'none';
+            }
+            e.stopPropagation();
+        } else {
+            // Fecha ao clicar fora
+            document.querySelectorAll('.dropdown-container').forEach(d => {
+                d.classList.remove('active');
+                const m = d.querySelector('.dropdown-menu');
+                if (m) m.style.display = 'none';
+            });
+        }
+    });
+  </script>
 </body>
 </html>

@@ -1,8 +1,3 @@
-/* ==========================================================================
-   PÁGINA DE AGENDAMENTO
-   ========================================================================== */
-
-/* CAIXAS DE ALERTAS (ESTILO PALETA GOLD/DARK) */
 .alert-box {
   display: flex;
   align-items: center;
@@ -44,7 +39,6 @@
   gap: 3.5rem;
 }
 
-/* FORMULÁRIO (ESQUERDA) */
 .form-column {
   display: flex;
   flex-direction: column;
@@ -93,7 +87,6 @@ textarea.form-control {
   min-height: 6rem;
 }
 
-/* SELEÇÃO DE BARBEIROS */
 .barbers-selection {
   display: flex;
   gap: 1.5rem;
@@ -132,7 +125,6 @@ textarea.form-control {
   box-shadow: 0 0 0 2px var(--primary-color);
 }
 
-/* CALENDÁRIO & HORÁRIOS (DIREITA) */
 .schedule-column {
   display: flex;
   flex-direction: column;
@@ -203,7 +195,6 @@ textarea.form-control {
   cursor: not-allowed;
 }
 
-/* HORÁRIOS */
 .time-selection {
   display: flex;
   flex-direction: column;
@@ -242,7 +233,6 @@ textarea.form-control {
   border-color: var(--primary-color);
 }
 
-/* HORÁRIOS JÁ OCUPADOS (DESABILITADOS E CINZA) */
 .time-pill.disabled,
 .time-pill:disabled {
   background-color: #e5e7eb !important;
@@ -272,7 +262,7 @@ textarea.form-control {
   opacity: 0.9;
 }
 
-/* MEDIA QUERIES (DESKTOPS E TABLETS MAIORES) */
+
 @media (min-width: 52em) {
   .agendamento-grid {
     grid-template-columns: 1fr 1fr;
