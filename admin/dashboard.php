@@ -86,7 +86,7 @@ if (isset($_GET['action'])) {
 
 $agoraBrt = new DateTimeImmutable('now', new DateTimeZone('America/Sao_Paulo'));
 $dataHoje = $agoraBrt->format('Y-m-d');
-$horaAtual = '14:45:00';
+$horaAtual = $agoraBrt->format('H:i:s');
 
 $stmtAtualizaVencidos = $pdo->prepare("UPDATE agendamentos SET status = 'concluido' WHERE (status IS NULL OR status NOT IN ('concluido', 'cancelado')) AND (data_agendamento < ? OR (data_agendamento = ? AND horario < ?))");
 $stmtAtualizaVencidos->execute([$dataHoje, $dataHoje, $horaAtual]);
@@ -208,7 +208,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
                     <tr>
                         <td><?=$u['id']?></td>
                         <td><?=$u['nome']?></td>
-                            <td><span data-full-phone="<?= htmlspecialchars($u['telefone'] ?? '') ?>" data-masked-phone="<?= htmlspecialchars(mascararTelefone($u['telefone'] ?? '')) ?>"><?= htmlspecialchars(mascararTelefone($u['telefone'] ?? '')) ?></span> <button type="button" class="toggle-phone" aria-label="Mostrar telefone"><i class="fa-regular fa-eye"></i></button></td>
+                            <td><?= htmlspecialchars($u['telefone'] ?? '-') ?></td>
                         <td><?=$u['email']?></td>
                         <td><?=$u['data_cadastro'] ?? '-'?></td>
                         <td><a href="?pagina=inicio&action=deletar_usuario&id=<?=$u['id']?>&csrf_token=<?=$csrfToken?>" class="action-link"><i class="fa-solid fa-trash"></i></a></td>
@@ -299,7 +299,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
             <h1>Bem vindo <?=$b['nome']?></h1>
             <div class="date-time">
                 <?= ucfirst($dataFormatada) ?><br>
-                <span><?= date('H:i', strtotime($horaAtual)) ?></span>
+                <span><?= date('H:i') ?></span>
             </div>
         </div>
 
@@ -342,7 +342,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
                         <tr>
                             <td><?=$ag['horario'] ?? '--:--'?></td>
                             <td><?=$ag['nome']?></td>
-                            <td><span data-full-phone="<?= htmlspecialchars($ag['telefone'] ?? '') ?>" data-masked-phone="<?= htmlspecialchars(mascararTelefone($ag['telefone'] ?? '')) ?>"><?= htmlspecialchars(mascararTelefone($ag['telefone'] ?? '')) ?></span> <button type="button" class="toggle-phone" aria-label="Mostrar telefone"><i class="fa-regular fa-eye"></i></button></td>
+                            <td><?= htmlspecialchars($ag['telefone'] ?? '-') ?></td>
                             <td><?=$ag['servico'] ?? 'Corte'?></td>
                             <td>
                                 <?php if (($ag['status'] ?? '') === 'em_andamento'): ?>
@@ -387,7 +387,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
                         <tr>
                             <td><?=$ag['horario'] ?? '--:--'?></td>
                             <td><?=$ag['nome']?></td>
-                            <td><span data-full-phone="<?= htmlspecialchars($ag['telefone'] ?? '') ?>" data-masked-phone="<?= htmlspecialchars(mascararTelefone($ag['telefone'] ?? '')) ?>"><?= htmlspecialchars(mascararTelefone($ag['telefone'] ?? '')) ?></span> <button type="button" class="toggle-phone" aria-label="Mostrar telefone"><i class="fa-regular fa-eye"></i></button></td>
+                            <td><?= htmlspecialchars($ag['telefone'] ?? '-') ?></td>
                             <td><?=$ag['servico'] ?? 'Corte'?></td>
                         </tr>
                         <?php endforeach; ?>
@@ -416,7 +416,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
                         <tr>
                             <td><div class="ranking-circle"><?=$ranking++?></div></td>
                             <td><?=$cf['nome']?></td>
-                            <td><span data-full-phone="<?= htmlspecialchars($cf['telefone'] ?? '') ?>" data-masked-phone="<?= htmlspecialchars(mascararTelefone($cf['telefone'] ?? '')) ?>"><?= htmlspecialchars(mascararTelefone($cf['telefone'] ?? '')) ?></span> <button type="button" class="toggle-phone" aria-label="Mostrar telefone"><i class="fa-regular fa-eye"></i></button></td>
+                            <td><?= htmlspecialchars($cf['telefone'] ?? '-') ?></td>
                             <td><?=$cf['email'] ?? '-'?></td>
                             <td>
                                 <div class="dropdown-container">
@@ -437,7 +437,6 @@ if (array_key_exists($pagina, $barbeirosMap)) {
     <?php endif; ?>
   </main>
 
-    <script src="../js/main.js"></script>
   <script>
     document.addEventListener('click', function(e) {
         const toggle = e.target.closest('.toggle-dropdown');

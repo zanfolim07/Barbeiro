@@ -16,7 +16,24 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   const telefoneInput = document.getElementById('telefone');
-  const telefoneReal = document.getElementById('telefone-real');
+  if (telefoneInput) {
+    telefoneInput.addEventListener('input', (event) => {
+      let value = event.target.value.replace(/\D/g, '');
+      if (value.length > 11) value = value.slice(0, 11);
+
+      if (value.length > 10) {
+        value = value.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+      } else if (value.length > 5) {
+        value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+      } else if (value.length > 2) {
+        value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+      } else if (value.length > 0) {
+        value = value.replace(/^(\d*)/, '($1');
+      }
+
+      event.target.value = value;
+    });
+  }
 
   function renderCalendar() {
     const year = currentDate.getFullYear();
@@ -145,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('form-agendamento');
   if (form) {
     form.addEventListener('submit', (e) => {
-      const telefoneLimpo = telefoneReal ? telefoneReal.value.replace(/\D/g, '') : '';
+      const telefoneLimpo = telefoneInput ? telefoneInput.value.replace(/\D/g, '') : '';
       const emailInput = document.getElementById('email');
       const emailValor = emailInput ? emailInput.value.trim() : '';
       

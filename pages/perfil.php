@@ -103,7 +103,6 @@ $dadosUsuario = $stmtUser->fetch(PDO::FETCH_ASSOC);
 $nomeVal     = $dadosUsuario['nome'] ?? $_SESSION['usuario_nome'] ?? '';
 $emailVal    = $dadosUsuario['email'] ?? $_SESSION['usuario_email'] ?? '';
 $telefoneVal = $dadosUsuario['telefone'] ?? $_SESSION['usuario_telefone'] ?? '';
-$telefoneMascarado = mascararTelefone($telefoneVal);
 
 $stmtAgendamentos = $pdo->prepare("
     SELECT * FROM agendamentos 
@@ -213,13 +212,7 @@ $preciosServicos = [
 
           <div class="form-group">
             <label for="prof-telefone">Telefone</label>
-            <div class="phone-field">
-              <input type="hidden" id="prof-telefone-real" name="telefone" value="<?= htmlspecialchars($telefoneVal) ?>">
-              <input type="tel" id="prof-telefone" name="telefone_visual" class="form-control phone-mask-input" value="<?= htmlspecialchars($telefoneMascarado) ?>" data-full-phone="<?= htmlspecialchars($telefoneVal) ?>" data-masked-phone="<?= htmlspecialchars($telefoneMascarado) ?>" readonly>
-              <button type="button" class="toggle-phone" aria-label="Mostrar telefone">
-                <i class="fa-regular fa-eye"></i>
-              </button>
-            </div>
+            <input type="tel" id="prof-telefone" name="telefone" class="form-control" value="<?= htmlspecialchars($telefoneVal) ?>" readonly>
           </div>
 
           <div style="display: flex; gap: 1rem; margin-top: 1rem;">

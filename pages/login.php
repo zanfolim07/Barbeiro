@@ -73,8 +73,7 @@ require_once __DIR__ . '/../php/funcoes.php';
 
         <div class="form-group">
           <label for="cad-telefone">Telefone</label>
-          <input type="hidden" id="cad-telefone-real" name="telefone" value="">
-          <input type="tel" id="cad-telefone" name="telefone_visual" class="form-control phone-mask-input" placeholder="***4321" maxlength="11" value="" required>
+          <input type="tel" id="cad-telefone" name="telefone" class="form-control" placeholder="(00) 00000-0000" required>
         </div>
 
         <div class="form-group">

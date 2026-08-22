@@ -11,17 +11,6 @@ function postEmail($campo)
     return $email ?: null;
 }
 
-function mascararTelefone($telefone)
-{
-    $digitos = preg_replace('/\D/', '', (string) $telefone);
-
-    if (strlen($digitos) <= 4) {
-        return $digitos ?: '-';
-    }
-
-    return str_repeat('*', strlen($digitos) - 4) . substr($digitos, -4);
-}
-
 function redirecionarComStatus($destino, $mensagem)
 {
     $query = http_build_query([

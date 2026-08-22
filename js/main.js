@@ -56,7 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  document.querySelectorAll('.toggle-phone').forEach(btn => {
+  /* privacy phone controls removed */
+  /* document.querySelectorAll('.toggle-phone').forEach(btn => {
     btn.addEventListener('click', () => {
       const container = btn.closest('.phone-field') || btn.parentElement;
       const phone = container?.querySelector('[data-full-phone]');
@@ -135,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form?.addEventListener('submit', () => {
       if (storage) storage.value = digits;
     });
-  });
+  }); */
 
   const formNewsletter = document.getElementById('form-newsletter');
   const newsletterMsg = document.getElementById('newsletter-msg');

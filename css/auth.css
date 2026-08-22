@@ -187,16 +187,6 @@
   border: 1px solid #f5c6cb;
 }
 
-.phone-field {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.phone-field .form-control {
-  padding-right: 3.25rem;
-}
-
 .toggle-phone {
   background: transparent;
   border: none;
