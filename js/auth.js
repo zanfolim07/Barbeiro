@@ -71,15 +71,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnEditarPerfil && formPerfil) {
     btnEditarPerfil.addEventListener('click', (event) => {
-      event.preventDefault();
+      if (btnEditarPerfil.dataset.editando !== 'true') {
+        event.preventDefault();
 
-      formPerfil.querySelectorAll('.form-control').forEach((campo) => {
-        campo.removeAttribute('readonly');
-      });
+        formPerfil.querySelectorAll('.form-control').forEach((campo) => {
+          campo.removeAttribute('readonly');
+        });
 
-      btnEditarPerfil.type = 'submit';
-      btnEditarPerfil.querySelector('i')?.remove();
-      btnEditarPerfil.querySelector('span').textContent = 'Salvar Alterações';
+        btnEditarPerfil.dataset.editando = 'true';
+        btnEditarPerfil.type = 'submit';
+        btnEditarPerfil.querySelector('i')?.remove();
+
+        const textoBotao = btnEditarPerfil.querySelector('span');
+        if (textoBotao) {
+          textoBotao.textContent = 'Salvar alterações';
+        }
+
+        formPerfil.querySelector('.form-control')?.focus();
+      }
     });
   }
 });
