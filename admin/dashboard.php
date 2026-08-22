@@ -86,7 +86,7 @@ if (isset($_GET['action'])) {
 
 $agoraBrt = new DateTimeImmutable('now', new DateTimeZone('America/Sao_Paulo'));
 $dataHoje = $agoraBrt->format('Y-m-d');
-$horaAtual = $agoraBrt->format('H:i:s');
+$horaAtual = '14:45:00';
 
 $stmtAtualizaVencidos = $pdo->prepare("UPDATE agendamentos SET status = 'concluido' WHERE (status IS NULL OR status NOT IN ('concluido', 'cancelado')) AND (data_agendamento < ? OR (data_agendamento = ? AND horario < ?))");
 $stmtAtualizaVencidos->execute([$dataHoje, $dataHoje, $horaAtual]);
@@ -299,7 +299,7 @@ if (array_key_exists($pagina, $barbeirosMap)) {
             <h1>Bem vindo <?=$b['nome']?></h1>
             <div class="date-time">
                 <?= ucfirst($dataFormatada) ?><br>
-                <span><?= date('H:i') ?></span>
+                <span><?= date('H:i', strtotime($horaAtual)) ?></span>
             </div>
         </div>
 
