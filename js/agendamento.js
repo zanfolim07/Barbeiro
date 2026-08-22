@@ -16,21 +16,35 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   const telefoneInput = document.getElementById('telefone');
-  if (telefoneInput) {
-    telefoneInput.addEventListener('input', (e) => {
-      let value = e.target.value.replace(/\D/g, ''); 
-      if (value.length > 11) value = value.slice(0, 11);
+  const telefoneReal = document.getElementById('telefone-real');
+  let telefoneDigitado = telefoneReal?.value.replace(/\D/g, '').slice(0, 11) || '';
 
-      if (value.length > 10) {
-        value = value.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
-      } else if (value.length > 5) {
-        value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
-      } else if (value.length > 2) {
-        value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-      } else if (value.length > 0) {
-        value = value.replace(/^(\d*)/, '($1');
+  function mascararTelefoneDigitacao(valor) {
+    const digitos = valor.replace(/\D/g, '').slice(0, 11);
+
+    if (digitos.length <= 4) {
+      return digitos.length > 2 ? `${digitos.slice(0, 2)} ${digitos.slice(2)}` : digitos;
+    }
+
+    return `${digitos.slice(0, 2)} ${digitos.slice(2, 4)}*****${digitos.slice(-2)}`;
+  }
+
+  if (telefoneInput) {
+    if (telefoneReal?.value) {
+      telefoneInput.value = mascararTelefoneDigitacao(telefoneDigitado);
+    }
+
+    telefoneInput.addEventListener('input', (e) => {
+      if (e.inputType === 'deleteContentBackward' || e.inputType === 'deleteContentForward') {
+        telefoneDigitado = telefoneDigitado.slice(0, -1);
+      } else if (e.data) {
+        telefoneDigitado = (telefoneDigitado + e.data.replace(/\D/g, '')).slice(0, 11);
+      } else {
+        telefoneDigitado = e.target.value.replace(/\D/g, '').slice(0, 11);
       }
-      e.target.value = value;
+
+      if (telefoneReal) telefoneReal.value = telefoneDigitado;
+      e.target.value = mascararTelefoneDigitacao(telefoneDigitado);
     });
   }
 
@@ -161,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('form-agendamento');
   if (form) {
     form.addEventListener('submit', (e) => {
-      const telefoneLimpo = telefoneInput ? telefoneInput.value.replace(/\D/g, '') : '';
+      const telefoneLimpo = telefoneReal ? telefoneReal.value.replace(/\D/g, '') : '';
       const emailInput = document.getElementById('email');
       const emailValor = emailInput ? emailInput.value.trim() : '';
       

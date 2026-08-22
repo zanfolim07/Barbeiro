@@ -56,6 +56,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  document.querySelectorAll('.toggle-phone').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const container = btn.closest('.phone-field') || btn.parentElement;
+      const phone = container?.querySelector('[data-full-phone]');
+      const icon = btn.querySelector('i');
+      const revealed = btn.dataset.revealed === 'true';
+
+      if (!phone) {
+        return;
+      }
+
+      if (phone.tagName === 'INPUT') {
+        phone.value = revealed ? phone.dataset.maskedPhone : phone.dataset.fullPhone;
+      } else {
+        phone.textContent = revealed ? phone.dataset.maskedPhone : phone.dataset.fullPhone;
+      }
+
+      btn.dataset.revealed = revealed ? 'false' : 'true';
+      btn.setAttribute('aria-label', revealed ? 'Mostrar telefone' : 'Ocultar telefone');
+      icon.classList.toggle('fa-eye', revealed);
+      icon.classList.toggle('fa-eye-slash', !revealed);
+    });
+  });
+
   const formNewsletter = document.getElementById('form-newsletter');
   const newsletterMsg = document.getElementById('newsletter-msg');
 

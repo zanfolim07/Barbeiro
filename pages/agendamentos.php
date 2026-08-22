@@ -145,7 +145,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="form-group">
           <label for="telefone">Telefone (Com DDD) *</label>
-          <input type="tel" id="telefone" name="telefone" class="form-control" placeholder="(00) 00000-0000" maxlength="15" value="<?= htmlspecialchars($_SESSION['usuario_telefone'] ?? '') ?>" required>
+          <input type="hidden" id="telefone-real" name="telefone" value="<?= htmlspecialchars($_SESSION['usuario_telefone'] ?? '') ?>">
+          <input type="tel" id="telefone" name="telefone_visual" class="form-control" placeholder="11 97*****21" maxlength="14" value="" required>
         </div>
 
         <div class="form-group">
