@@ -80,6 +80,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  document.querySelectorAll('.phone-mask-input').forEach(input => {
+    const form = input.form;
+    const storage = form?.querySelector('[data-phone-storage]') || document.getElementById(`${input.id}-real`);
+    let digits = storage?.value.replace(/\D/g, '').slice(0, 11) || '';
+
+    const formatPhone = (value) => {
+      if (value.length <= 4) {
+        return value.length > 2 ? `${value.slice(0, 2)} ${value.slice(2)}` : value;
+      }
+
+      return `${value.slice(0, 2)} ${value.slice(2, 4)}*****${value.slice(-2)}`;
+    };
+
+    input.value = formatPhone(digits);
+
+    input.addEventListener('input', (event) => {
+      if (event.inputType.startsWith('delete')) {
+        digits = digits.slice(0, -1);
+      } else if (event.data) {
+        digits = (digits + event.data.replace(/\D/g, '')).slice(0, 11);
+      } else {
+        digits = input.value.replace(/\D/g, '').slice(0, 11);
+      }
+
+      if (storage) storage.value = digits;
+      input.value = formatPhone(digits);
+    });
+
+    form?.addEventListener('submit', () => {
+      if (storage) storage.value = digits;
+    });
+  });
+
   const formNewsletter = document.getElementById('form-newsletter');
   const newsletterMsg = document.getElementById('newsletter-msg');
 

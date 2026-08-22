@@ -70,17 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (btnEditarPerfil && formPerfil) {
-    const telefonePerfil = document.getElementById('prof-telefone');
-    if (telefonePerfil) {
-      telefonePerfil.dataset.maskedPhone = telefonePerfil.value;
-    }
-
-    formPerfil.addEventListener('submit', () => {
-      if (telefonePerfil) {
-        telefonePerfil.value = telefonePerfil.dataset.fullPhone || telefonePerfil.value;
-      }
-    });
-
     btnEditarPerfil.addEventListener('click', (event) => {
       if (btnEditarPerfil.dataset.editando !== 'true') {
         event.preventDefault();

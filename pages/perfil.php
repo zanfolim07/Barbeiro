@@ -214,7 +214,8 @@ $preciosServicos = [
           <div class="form-group">
             <label for="prof-telefone">Telefone</label>
             <div class="phone-field">
-              <input type="tel" id="prof-telefone" name="telefone" class="form-control" value="<?= htmlspecialchars($telefoneMascarado) ?>" data-full-phone="<?= htmlspecialchars($telefoneVal) ?>" readonly>
+              <input type="hidden" id="prof-telefone-real" name="telefone" value="<?= htmlspecialchars($telefoneVal) ?>">
+              <input type="tel" id="prof-telefone" name="telefone_visual" class="form-control phone-mask-input" value="<?= htmlspecialchars($telefoneMascarado) ?>" data-full-phone="<?= htmlspecialchars($telefoneVal) ?>" data-masked-phone="<?= htmlspecialchars($telefoneMascarado) ?>" readonly>
               <button type="button" class="toggle-phone" aria-label="Mostrar telefone">
                 <i class="fa-regular fa-eye"></i>
               </button>

@@ -17,36 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const telefoneInput = document.getElementById('telefone');
   const telefoneReal = document.getElementById('telefone-real');
-  let telefoneDigitado = telefoneReal?.value.replace(/\D/g, '').slice(0, 11) || '';
-
-  function mascararTelefoneDigitacao(valor) {
-    const digitos = valor.replace(/\D/g, '').slice(0, 11);
-
-    if (digitos.length <= 4) {
-      return digitos.length > 2 ? `${digitos.slice(0, 2)} ${digitos.slice(2)}` : digitos;
-    }
-
-    return `${digitos.slice(0, 2)} ${digitos.slice(2, 4)}*****${digitos.slice(-2)}`;
-  }
-
-  if (telefoneInput) {
-    if (telefoneReal?.value) {
-      telefoneInput.value = mascararTelefoneDigitacao(telefoneDigitado);
-    }
-
-    telefoneInput.addEventListener('input', (e) => {
-      if (e.inputType === 'deleteContentBackward' || e.inputType === 'deleteContentForward') {
-        telefoneDigitado = telefoneDigitado.slice(0, -1);
-      } else if (e.data) {
-        telefoneDigitado = (telefoneDigitado + e.data.replace(/\D/g, '')).slice(0, 11);
-      } else {
-        telefoneDigitado = e.target.value.replace(/\D/g, '').slice(0, 11);
-      }
-
-      if (telefoneReal) telefoneReal.value = telefoneDigitado;
-      e.target.value = mascararTelefoneDigitacao(telefoneDigitado);
-    });
-  }
 
   function renderCalendar() {
     const year = currentDate.getFullYear();
