@@ -15,11 +15,11 @@ function mascararTelefone($telefone)
 {
     $digitos = preg_replace('/\D/', '', (string) $telefone);
 
-    if (strlen($digitos) < 7) {
-        return $digitos ? str_repeat('*', strlen($digitos)) : '-';
+    if (strlen($digitos) <= 4) {
+        return $digitos ?: '-';
     }
 
-    return substr($digitos, 0, 2) . ' ' . substr($digitos, 2, 2) . '*****' . substr($digitos, -2);
+    return str_repeat('*', strlen($digitos) - 4) . substr($digitos, -4);
 }
 
 function redirecionarComStatus($destino, $mensagem)

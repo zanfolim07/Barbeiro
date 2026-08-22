@@ -86,26 +86,50 @@ document.addEventListener('DOMContentLoaded', () => {
     let digits = storage?.value.replace(/\D/g, '').slice(0, 11) || '';
 
     const formatPhone = (value) => {
-      if (value.length <= 4) {
-        return value.length > 2 ? `${value.slice(0, 2)} ${value.slice(2)}` : value;
-      }
-
-      return `${value.slice(0, 2)} ${value.slice(2, 4)}*****${value.slice(-2)}`;
+      return value.length > 4 ? `${'*'.repeat(value.length - 4)}${value.slice(-4)}` : value;
     };
 
     input.value = formatPhone(digits);
+    let substituirSelecao = false;
 
-    input.addEventListener('input', (event) => {
-      if (event.inputType.startsWith('delete')) {
-        digits = digits.slice(0, -1);
-      } else if (event.data) {
-        digits = (digits + event.data.replace(/\D/g, '')).slice(0, 11);
-      } else {
-        digits = input.value.replace(/\D/g, '').slice(0, 11);
-      }
-
+    const atualizarTelefone = (novosDigitos) => {
+      digits = novosDigitos.replace(/\D/g, '').slice(0, 11);
       if (storage) storage.value = digits;
       input.value = formatPhone(digits);
+      input.setSelectionRange(input.value.length, input.value.length);
+    };
+
+    input.addEventListener('paste', (event) => {
+      event.preventDefault();
+      const colado = event.clipboardData?.getData('text') || '';
+      const substituir = input.selectionStart === 0 && input.selectionEnd === input.value.length;
+      atualizarTelefone(substituir ? colado : digits + colado);
+    });
+
+    input.addEventListener('keydown', (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'a') {
+        substituirSelecao = true;
+      }
+
+      if ((event.key === 'Backspace' || event.key === 'Delete')
+        && input.selectionStart === 0
+        && input.selectionEnd === input.value.length) {
+        event.preventDefault();
+        substituirSelecao = false;
+        atualizarTelefone('');
+      }
+    });
+
+    input.addEventListener('input', (event) => {
+      if (event.inputType?.startsWith('delete')) {
+        atualizarTelefone(digits.slice(0, -1));
+      } else if (event.data) {
+        atualizarTelefone(substituirSelecao ? event.data : digits + event.data);
+      } else {
+        atualizarTelefone(input.value);
+      }
+
+      substituirSelecao = false;
     });
 
     form?.addEventListener('submit', () => {
